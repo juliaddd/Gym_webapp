@@ -2,8 +2,17 @@ from sqlalchemy import create_engine, ForeignKey, Date, Enum as SQLEnum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy import Column, Integer, String, SmallInteger
-from enum import Enum
 from sqlalchemy import text
+
+
+class SubscriptionType(str, Enum):
+    STANDARD = "standard"
+    PREMIUM = "premium"
+    VIP = "vip"
+
+class UserRole(str, Enum):
+    USER = "user"
+    ADMIN = "admin"
 
 # Database configuration
 SQLALCHEMY_DATABASE_URL = "mysql+pymysql://webapp:n-V]W9dye)d]HAXH@localhost/webapp"
@@ -39,7 +48,8 @@ class UserDB(Base):
     email = Column(String(255), unique=True, nullable=False)
     address = Column(String(255))
     password = Column(String(255), nullable=False)
-    subscription_type = Column(Enum("VIP", "premium", "standard"), nullable=False, default="standard")
-    role = Column(Enum("USER", "ADMIN"), nullable=False, default="ADMIN")
+    
+    subscription_type = Column(SqlEnum(SubscriptionType), nullable=False, default=SubscriptionType.STANDARD)
+    role = Column(SqlEnum(UserRole), nullable=False, default=UserRole.USER)
 
     trainings = relationship("TrainingDB", back_populates="user")  # Relationship to Training
