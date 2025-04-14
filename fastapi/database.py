@@ -3,6 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy import Column, Integer, String, SmallInteger
 from sqlalchemy import text
+from enum import Enum
 
 
 class SubscriptionType(str, Enum):
@@ -31,7 +32,7 @@ class CategoryDB(Base):
 class TrainingDB(Base):
     __tablename__ = "Training"
     training_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("User.user_id"))
+    user_id = Column(Integer, ForeignKey("User.user_id", ondelete="CASCADE"))
     category_id = Column(Integer, ForeignKey("Category.category_id"))
     date = Column(Date, nullable=False)
     training_duration = Column(Integer, nullable=False)
@@ -49,7 +50,15 @@ class UserDB(Base):
     address = Column(String(255))
     password = Column(String(255), nullable=False)
     
-    subscription_type = Column(SqlEnum(SubscriptionType), nullable=False, default=SubscriptionType.STANDARD)
-    role = Column(SqlEnum(UserRole), nullable=False, default=UserRole.USER)
+    subscription_type = Column(SQLEnum(SubscriptionType), nullable=False, default=SubscriptionType.STANDARD)
+    role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.USER)
 
     trainings = relationship("TrainingDB", back_populates="user")  # Relationship to Training
+
+# Database Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
