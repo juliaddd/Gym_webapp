@@ -1,10 +1,12 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ProfileIcon from './components/profileicon';
 import StatisticsChart from './components/statisticschart';
 import CategoryGrid from './components/categorygrid';
 
 export default function UserMainPage() {
+  const router = useRouter(); // Next.js useRouter hook for navigation
   // Define a basic user object for the layout CHANGE LATER
   const user = {
     avatar: 'https://example.com/user-avatar.jpg',
@@ -34,19 +36,19 @@ export default function UserMainPage() {
 
   // Handle profile click (redirect to profile page)
   const handleProfileClick = () => {
-    window.location.href = '/profile'; // Redirect to profile page
+    router.push('/profile'); // Redirect to profile page
   };
 
   // Handle category selection (redirect to training page)
-  const handleCategorySelect = (category) => {
-    console.log('Selected category:', category.title);
-    window.location.href = `/training/${category.title.toLowerCase()}`; // Redirect to training page for selected category
-  };
+const handleCategorySelect = (category) => {
+  console.log('Selected category:', category.title);
+  router.push(`/training/${category.title.toLowerCase()}`); // Use router.push instead
+};
 
-  // Handle statistics click (redirect to statistics page)
-  const handleStatisticsClick = () => {
-    window.location.href = '/statistics'; // Redirect to statistics page
-  };
+// Handle statistics click (redirect to statistics page)
+const handleStatisticsClick = () => {
+  router.push('/statistics'); // Use router.push instead
+};
 
   return (
     <div className="container mx-auto px-4 py-8">
