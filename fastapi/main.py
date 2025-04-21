@@ -429,19 +429,38 @@ from sqlalchemy.sql import extract
 def get_training_time_by_day_of_week(
     request: TrainingCategoryStatsRequest, db: Session = Depends(get_db)
 ):
-    results = (
+
+    query = (
         db.query(
             func.dayname(TrainingDB.date).label("day_of_week"),
             func.sum(TrainingDB.training_duration).label("total_training_time")
         )
         .filter(TrainingDB.date.between(request.date_from, request.date_to))
+    )
+
+    if request.user_id:
+        query = query.filter(TrainingDB.user_id == request.user_id)
+
+    results = (
+        query
         .group_by(func.dayname(TrainingDB.date))
         .all()
     )
-
     return [
         DayOfWeekStatsResponse(
             day_of_week=row.day_of_week,
             total_training_time=row.total_training_time or 0
         ) for row in results
     ]
+
+@app.get("/categories/{category_id}", response_model=CategoryResponse)
+def read_category(category_id: int, db: Session = Depends(get_db)):
+    category = db.query(CategoryDB).filter(CategoryDB.category_id == category_id).first()
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return category
+
+@app.get("/categories/", response_model=List[CategoryResponse])
+def list_categories(db: Session = Depends(get_db)):
+    categories = db.query(CategoryDB).all()
+    return categories
