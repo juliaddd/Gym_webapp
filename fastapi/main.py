@@ -1,11 +1,12 @@
 from enum import Enum
 from datetime import date, datetime, timedelta
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr, constr, field_validator, model_validator
+from pydantic import BaseModel, EmailStr, constr, field_validator, model_validator, Field
 import re
 from passlib.context import CryptContext
 from fastapi import FastAPI, HTTPException, Depends, Query, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from database import *
 import secrets
 
@@ -120,7 +121,7 @@ class CategoryResponse(CategoryBase):
 # ====================== #
 class TrainingBase(BaseModel):
     date: date
-    training_duration: int  # in minutes
+    training_duration: int = Field(..., gt=0)  # minimum 1 minute
 
 class TrainingCreate(TrainingBase):
     user_id: int
@@ -162,14 +163,6 @@ class TrainingResponse(TrainingBase):
     class Config:
         from_attributes = True
 
-class UserSearchResultList(BaseModel):
-    users: List[UserSearchResult]
-
-class SubscriptionStatsList(BaseModel):
-    stats: List[SubscriptionStatsResponse]
-
-class DayOfWeekStatsList(BaseModel):
-    stats: List[DayOfWeekStatsResponse]
 
 
 
@@ -307,3 +300,148 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     db.delete(db_user)
     db.commit()
     return None
+
+
+# ====================== #
+#     API Trainings      #
+# ====================== #
+
+@app.post("/training/", response_model=TrainingResponse)
+def create_training(training: TrainingCreate, db: Session = Depends(get_db)):
+
+    db_training = TrainingDB(
+        user_id = training.user_id,
+        category_id = training.category_id,
+        date = training.date ,
+        training_duration = training.training_duration
+    )
+
+    try:
+        db.add(db_training)
+        db.commit()
+        db.refresh(db_training)
+        return db_training
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/trainings/stats/by-category/", response_model=List[CategoryStatsResponse])
+def get_training_stats_by_category(request: TrainingCategoryStatsRequest, db: Session = Depends(get_db)):
+    query = (
+        db.query(
+            CategoryDB.name.label("category_name"),
+            func.sum(TrainingDB.training_duration).label("total_training_time")
+        )
+        .join(TrainingDB, TrainingDB.category_id == CategoryDB.category_id)
+        .filter(TrainingDB.date.between(request.date_from, request.date_to))
+        .group_by(CategoryDB.name)
+    )
+
+    if request.user_id:
+        query = query.filter(TrainingDB.user_id == request.user_id)
+
+    results = query.all()
+
+    return [CategoryStatsResponse(category_name=row.category_name, total_training_time=row.total_training_time or 0) for row in results]
+
+@app.get("/trainings/stats/by-category/{user_id}", response_model=List[CategoryStatsResponse])
+def get_training_stats_all_time(user_id: int, db: Session = Depends(get_db)):
+    results = (
+        db.query(
+            CategoryDB.name.label("category_name"),
+            func.sum(TrainingDB.training_duration).label("total_training_time")
+        )
+        .join(TrainingDB, TrainingDB.category_id == CategoryDB.category_id)
+        .filter(TrainingDB.user_id == user_id)
+        .group_by(CategoryDB.name)
+        .all()
+    )
+
+    return [CategoryStatsResponse(category_name=row.category_name, total_training_time=row.total_training_time or 0) for row in results]
+
+
+@app.post("/trainings/stats/total-time/", response_model=TotalTimeResponse)
+def get_total_training_time(request: TrainingCategoryStatsRequest, db: Session = Depends(get_db)):
+    query = db.query(func.sum(TrainingDB.training_duration))
+
+    if request.user_id:
+        query = query.filter(TrainingDB.user_id == request.user_id)
+
+    query = query.filter(TrainingDB.date.between(request.date_from, request.date_to))
+
+    total_time = query.scalar() or 0
+
+    return TotalTimeResponse(total_training_time=total_time)
+
+
+@app.post("/trainings/stats/by-subscription/", response_model=List[SubscriptionStatsResponse])
+def get_stats_by_category_and_subscription(
+    request: TrainingCategoryStatsRequest, db: Session = Depends(get_db)
+):
+    query = (
+        db.query(
+            CategoryDB.name.label("category_name"),
+            UserDB.subscription_type,
+            func.sum(TrainingDB.training_duration).label("total_training_time")
+        )
+        .join(TrainingDB, TrainingDB.category_id == CategoryDB.category_id)
+        .join(UserDB, UserDB.user_id == TrainingDB.user_id)
+        .filter(TrainingDB.date.between(request.date_from, request.date_to))
+    )
+
+    if request.user_id:
+        query = query.filter(TrainingDB.user_id == request.user_id)
+
+    results = query.group_by(CategoryDB.name, UserDB.subscription_type).all()
+
+    return [
+        SubscriptionStatsResponse(
+            category_name=row.category_name,
+            subscription_type=row.subscription_type,
+            total_training_time=row.total_training_time or 0
+        ) for row in results
+    ]
+
+
+@app.get("/users/stats/subscriptions", response_model=List[UserCountBySubscriptionResponse])
+def get_user_counts_by_subscription(db: Session = Depends(get_db)):
+    results = (
+        db.query(
+            UserDB.subscription_type,
+            func.count(UserDB.user_id).label("user_count")
+        )
+        .group_by(UserDB.subscription_type)
+        .all()
+    )
+
+    return [
+        UserCountBySubscriptionResponse(
+            subscription_type=row.subscription_type,
+            user_count=row.user_count
+        ) for row in results
+    ]
+
+
+from sqlalchemy.sql import extract
+
+@app.post("/trainings/stats/by-day-of-week/", response_model=List[DayOfWeekStatsResponse])
+def get_training_time_by_day_of_week(
+    request: TrainingCategoryStatsRequest, db: Session = Depends(get_db)
+):
+    results = (
+        db.query(
+            func.dayname(TrainingDB.date).label("day_of_week"),
+            func.sum(TrainingDB.training_duration).label("total_training_time")
+        )
+        .filter(TrainingDB.date.between(request.date_from, request.date_to))
+        .group_by(func.dayname(TrainingDB.date))
+        .all()
+    )
+
+    return [
+        DayOfWeekStatsResponse(
+            day_of_week=row.day_of_week,
+            total_training_time=row.total_training_time or 0
+        ) for row in results
+    ]
