@@ -1,31 +1,48 @@
+'use client';
 import { TextField } from '@mui/material';
-import PropTypes from 'prop-types'; // To validate props
+import PropTypes from 'prop-types';
 
-const InputField = ({ label, type, value, onChange }) => {
+const InputField = ({ label, name, type, value, onChange }) => {
+  const handleChange = (e) => {
+    // Call the parent's onChange with both name and value
+    onChange(name, e.target.value);
+  };
+
   return (
     <TextField
       label={label}
+      name={name}
       type={type}
       value={value}
-      onChange={(e) => onChange(e.target.name, e.target.value)} // Trigger the onChange function
+      onChange={handleChange}
       required
       fullWidth
       margin="normal"
+      sx={{
+        '& .MuiOutlinedInput-root': {
+          '& fieldset': {
+            borderColor: '#ddd',
+          },
+          '&:hover fieldset': {
+            borderColor: '#aaa',
+          },
+        },
+        marginBottom: '15px'
+      }}
     />
   );
 };
 
-// Prop validation for the component
 InputField.propTypes = {
-  label: PropTypes.string.isRequired, // label should be a string
-  type: PropTypes.string, // type should be a string, default to "text" if not provided
-  value: PropTypes.string.isRequired, // value should be a string
-  onChange: PropTypes.func.isRequired, // onChange should be a function
+  label: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired, // Added name prop validation
+  type: PropTypes.string,
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
 };
 
-// Default props if not passed
 InputField.defaultProps = {
-  type: 'text', // Default type is 'text'
+  type: 'text',
 };
 
 export default InputField;

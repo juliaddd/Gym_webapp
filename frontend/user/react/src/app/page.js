@@ -47,7 +47,7 @@ const handleCategorySelect = (category) => {
 
 // Handle statistics click (redirect to statistics page)
 const handleStatisticsClick = () => {
-  router.push('/statistics'); // Use router.push instead
+  router.push('/statisticsuser'); // Use router.push instead
 };
 
   return (
@@ -58,9 +58,18 @@ const handleStatisticsClick = () => {
       </div>
 
       {/* Statistics Section */}
+      <h1 className="text-2xl font-bold mb-4">Your Weekly Workout Statistics</h1>
       <div className="my-8">
-        <StatisticsChart data={statistics} onClick={handleStatisticsClick} />
+        <StatisticsChart data={statistics}/>
+        {/* Кликабельный текст для просмотра полной статистики */}
+      <button
+        onClick={handleStatisticsClick}
+        className="text-blue-500 hover:text-blue-700 underline"
+      >
+        See full statistics
+      </button>
       </div>
+
 
       {/* Categories Grid */}
       <div className="my-8">

@@ -38,18 +38,10 @@ export default function StatisticsChart({ data, onClick }) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-4">Your Weekly Workout Statistics</h1>
       {/* Отображаем график */}
       <div className="mb-4">
         <Bar data={chartData} options={options} />
       </div>
-      {/* Кликабельный текст для просмотра полной статистики */}
-      <button
-        onClick={onClick}
-        className="text-blue-500 hover:text-blue-700 underline"
-      >
-        See full statistics
-      </button>
     </div>
   );
 }

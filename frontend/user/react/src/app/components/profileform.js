@@ -1,18 +1,19 @@
 'use client';
 import React, { useState } from 'react';
-import InputField from './inputfield'; // Import your InputField component
+import InputField from './inputfield';
+import { Button, Box } from '@mui/material';
+import SaveIcon from '@mui/icons-material/Save';
 
-export default function ProfileForm({ formData, onChange }) {
+export default function ProfileForm({ formData, onChange, onSaveChanges }) {
   const [editedData, setEditedData] = useState(formData);
 
-  // Handle change for each field
-  const handleFieldChange = (field, value) => {
+  const handleFieldChange = (fieldName, value) => {
     const newData = {
       ...editedData,
-      [field]: value
+      [fieldName]: value
     };
     setEditedData(newData);
-    onChange(field, value);
+    onChange(fieldName, value);
   };
 
   const handleSubmit = (e) => {
@@ -21,82 +22,88 @@ export default function ProfileForm({ formData, onChange }) {
   };
 
   return (
-    <div className="profile-form">
+    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+      <InputField
+        label="Name"
+        name="name"
+        value={editedData.name}
+        onChange={handleFieldChange}
+      />
+      <InputField
+        label="Surname"
+        name="surname"
+        value={editedData.surname}
+        onChange={handleFieldChange}
+      />
+      <InputField
+        label="Email"
+        name="email"
+        type="email"
+        value={editedData.email}
+        onChange={handleFieldChange}
+      />
+      <InputField
+        label="Phone number"
+        name="phone"
+        value={editedData.phone}
+        onChange={handleFieldChange}
+      />
+      <InputField
+        label="Address"
+        name="address"
+        value={editedData.address}
+        onChange={handleFieldChange}
+      />
+      <InputField
+        label="City"
+        name="city"
+        value={editedData.city}
+        onChange={handleFieldChange}
+      />
+      <InputField
+        label="Membership Type"
+        name="membershipType"
+        value={editedData.membershipType}
+        onChange={handleFieldChange}
+      />
+      <InputField
+        label="Password"
+        name="password"
+        type="password"
+        value={editedData.password}
+        onChange={handleFieldChange}
+      />
+      <InputField
+        label="New password"
+        name="newPassword"
+        type="password"
+        value={editedData.newPassword}
+        onChange={handleFieldChange}
+      />
+      <InputField
+        label="Repeat password"
+        name="repeatPassword"
+        type="password"
+        value={editedData.repeatPassword}
+        onChange={handleFieldChange}
+      />
 
-      <form>
-        {/* Editable fields */}
-        <InputField
-          label="Name"
-          value={editedData.name}
-          onChange={(e) => handleFieldChange('name', e.target.value)}
-        />
-        <InputField
-          label="Surname"
-          value={editedData.surname}
-          onChange={(e) => handleFieldChange('surname', e.target.value)}
-        />
-        <InputField
-          label="Email"
-          type="email"
-          value={editedData.email}
-          onChange={(e) => handleFieldChange('email', e.target.value)}
-        />
-        <InputField
-          label="Phone number"
-          value={editedData.phone}
-          onChange={(e) => handleFieldChange('phone', e.target.value)}
-        />
-        <InputField
-          label="Address"
-          value={editedData.address}
-          onChange={(e) => handleFieldChange('address', e.target.value)}
-        />
-        <InputField
-          label="City"
-          value={editedData.city}
-          onChange={(e) => handleFieldChange('city', e.target.value)}
-        />
-        <InputField
-          label="Membership Type"
-          value={editedData.membershipType}
-          onChange={(e) => handleFieldChange('membershipType', e.target.value)}
-        />
-        <InputField
-          label="Password"
-          type="password"
-          value={editedData.password}
-          onChange={(e) => handleFieldChange('password', e.target.value)}
-        />
-        <InputField
-          label="New password"
-          type="password"
-          value={editedData.newPassword}
-          onChange={(e) => handleFieldChange('password', e.target.value)}
-        />
-        <InputField
-          label="Repeat password"
-          type="password"
-          value={editedData.repeatPassword}
-          onChange={(e) => handleFieldChange('password', e.target.value)}
-        />
-        
-        <button 
-          type="submit" 
-          className="save-button"
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            marginTop: '20px'
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          startIcon={<SaveIcon />}
+          sx={{
+            px: 4,
+            py: 1.5,
+            fontSize: '1rem',
+            textTransform: 'none'
           }}
         >
           Save Changes
-        </button>
-
-      </form>
-    </div>
+        </Button>
+      </Box>
+    </Box>
   );
 }
