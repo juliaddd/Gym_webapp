@@ -1,17 +1,21 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import ProfileIcon from '@/app/components/profileicon';
 import StatisticsChart from '@/app/components/statisticschart';
-import NavigationArrows from '@/app/components/arrow';
-import { useRouter } from 'next/navigation';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'; // The back icon from Material UI
 
 export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) {
   const [weeklyData, setWeeklyData] = useState([]);
   const [monthlyData, setMonthlyData] = useState([]);
   const [currentWeek, setCurrentWeek] = useState({});
   const [currentMonth, setCurrentMonth] = useState({});
+  const [currentWeekLabel, setCurrentWeekLabel] = useState('This week');
+  const [currentMonthLabel, setCurrentMonthLabel] = useState('This month');
+  const router = useRouter();
 
-  // Example mock data, you can replace it with real API data
   const mockWeeklyData = [
     { day: 'Monday', value: 30 },
     { day: 'Tuesday', value: 40 },
@@ -28,28 +32,45 @@ export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) 
     { month: 'March', value: 220 },
   ];
 
-  // Assuming data is fetched asynchronously (useEffect example)
   useEffect(() => {
-    // Simulate fetching data
     setWeeklyData(mockWeeklyData);
     setMonthlyData(mockMonthlyData);
-    setCurrentWeek(mockWeeklyData[0]);
-    setCurrentMonth(mockMonthlyData[0]);
+    setCurrentWeek(mockWeeklyData[1]);
+    setCurrentMonth(mockMonthlyData[1]);
   }, []);
 
-  // Loading check for weeklyData and monthlyData
   if (!weeklyData.length || !monthlyData.length) {
-    return <div>Loading...</div>; // Show loading message until data is available
+    return <div>Loading...</div>;
   }
 
   // Handle back button click
   const handleBackClick = () => {
-    router.back(); // Go back to the previous page
+    router.back();
   };
 
-    // Handle profile click (redirect to profile page)
+  // Handle profile click (redirect to profile page)
   const handleProfileClick = () => {
-    router.push('/profile'); // Redirect to profile page
+    router.push('/profile');
+  };
+
+  // Handle week change
+  const handleWeekChange = (direction) => {
+    const currentIndex = mockWeeklyData.indexOf(currentWeek);
+    const newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+    if (newIndex >= 0 && newIndex < mockWeeklyData.length) {
+      setCurrentWeek(mockWeeklyData[newIndex]);
+      setCurrentWeekLabel(mockWeeklyData[newIndex].day);
+    }
+  };
+
+  // Handle month change
+  const handleMonthChange = (direction) => {
+    const currentIndex = mockMonthlyData.indexOf(currentMonth);
+    const newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+    if (newIndex >= 0 && newIndex < mockMonthlyData.length) {
+      setCurrentMonth(mockMonthlyData[newIndex]);
+      setCurrentMonthLabel(mockMonthlyData[newIndex].month);
+    }
   };
 
   return (
@@ -59,20 +80,62 @@ export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) 
         <ProfileIcon userImage="https://example.com/user-avatar.jpg" onClick={handleProfileClick} />
       </div>
 
+      {/* Back Button */}
+      
+      <div className="back-button" onClick={handleBackClick} style={{ cursor: 'pointer', margin: '10px' }}>
+        <ArrowBackIcon />
+        <span style={{ marginLeft: '5px' }}>Back</span>
+      </div>
+
       {/* Weekly Statistics Section */}
       <div className="my-8">
         <StatisticsChart data={weeklyData} onClick={onChangeWeek} />
+        <div className="text-center mt-4">
+          <span>{currentWeekLabel}</span>
+        </div>
+      </div>
+
+      {/* Navigation Arrows */}
+      <div className="flex justify-between mt-4">
+        <div
+          onClick={() => handleWeekChange('previous')}
+          style={{ cursor: 'pointer', margin: '10px' }}
+        >
+          <ArrowBackIosIcon />
+        </div>
+        <div
+          onClick={() => handleWeekChange('next')}
+          style={{ cursor: 'pointer', margin: '10px' }}
+        >
+          <ArrowForwardIosIcon />
+        </div>
       </div>
 
       {/* Monthly Statistics Section */}
       <div className="my-8">
         <StatisticsChart data={monthlyData} onClick={onChangeMonth} />
+        <div className="text-center mt-4">
+          <span>{currentMonthLabel}</span>
+        </div>
       </div>
 
-      {/* Navigation Arrows */}
-      <div className="my-8">
-        <NavigationArrows onPrevious={onChangeWeek} onNext={onChangeMonth} />
+      {/* Navigation Arrows for Month */}
+      <div className="flex justify-between mt-4">
+        <div
+          onClick={() => handleMonthChange('previous')}
+          style={{ cursor: 'pointer', margin: '10px' }}
+        >
+          <ArrowBackIosIcon />
+        </div>
+        <div
+          onClick={() => handleMonthChange('next')}
+          style={{ cursor: 'pointer', margin: '10px' }}
+        >
+          <ArrowForwardIosIcon />
+        </div>
       </div>
+
+
     </div>
   );
 }
