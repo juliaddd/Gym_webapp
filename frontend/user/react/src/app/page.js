@@ -64,7 +64,7 @@ const handleStatisticsClick = () => {
         {/* Кликабельный текст для просмотра полной статистики */}
       <button
         onClick={handleStatisticsClick}
-        className="text-blue-500 hover:text-blue-700 underline"
+        className="text-blue-500 hover:text-blue-700 underline" style={{ cursor: 'pointer' }}
       >
         See full statistics
       </button>
