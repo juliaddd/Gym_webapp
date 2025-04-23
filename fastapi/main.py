@@ -10,7 +10,7 @@ from user import crud as user_crud, schemas as user_schemas
 from category import crud as category_crud, schemas as category_schemas
 from training import crud as training_crud, schemas as training_schemas
 
-from auth import login_user, Token
+from auth import login_user, Token, is_admin_user, is_valid_user
 from fastapi.security import OAuth2PasswordRequestForm 
 
 app = FastAPI()
@@ -53,7 +53,7 @@ def create_user(user: user_schemas.UserCreate, db: Session = Depends(get_db)):
     summary="Get list of users",
     description="Retrieve a paginated list of users. Admin access required.",
 )
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: user_schemas.UserResponse = Depends(is_admin_user)):
     return user_crud.get_users(db, skip, limit)
 
 @app.get(
@@ -61,8 +61,10 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     response_model=user_schemas.UserResponse,
     summary="Get user by ID",
     description="Retrieve details of a specific user. Accessible by the user themselves or admins.",
-)
-def read_user(user_id: int, db: Session = Depends(get_db)):
+    )
+def read_user(user_id: int, db: Session = Depends(get_db), current_user: user_schemas.UserResponse = Depends(is_valid_user)):
+    if current_user.user_id != user_id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     return user_crud.get_user(db, user_id)
 
 @app.get(
@@ -71,7 +73,7 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     summary="Get user counts by subscription",
     description="Retrieve the number of users by subscription type. Admin access required.",
 )
-def get_user_counts_by_sub(db: Session = Depends(get_db)):
+def get_user_counts_by_sub(db: Session = Depends(get_db),  current_user: user_schemas.UserResponse = Depends(is_admin_user)):
     return user_crud.get_user_counts_by_sub(db)
 
 @app.get(
@@ -84,7 +86,8 @@ def search_users(
     search: Optional[str] = None,
     subscription_type: Optional[user_schemas.SubscriptionType] = None,
     role: Optional[user_schemas.UserRole] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: user_schemas.UserResponse = Depends(is_admin_user)
 ):
     return user_crud.search_users(db, search, subscription_type, role)
 
@@ -94,7 +97,9 @@ def search_users(
     summary="Update user",
     description="Partially update user details. Accessible by the user themselves or admins.",
 )
-def update_user(user_id: int, user: user_schemas.UserUpdate, db: Session = Depends(get_db)):
+def update_user(user_id: int, user: user_schemas.UserUpdate, db: Session = Depends(get_db),  current_user: user_schemas.UserResponse = Depends(is_valid_user)):
+    if current_user.user_id != user_id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     return user_crud.update_user(db, user_id, user)
 
 @app.delete(
@@ -103,7 +108,7 @@ def update_user(user_id: int, user: user_schemas.UserUpdate, db: Session = Depen
     summary="Delete user",
     description="Delete a user. Accessible by the user themselves or admins.",
 )
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user(user_id: int, db: Session = Depends(get_db), current_user: user_schemas.UserResponse = Depends(is_admin_user)):
     return user_crud.delete_user(db, user_id)
 
 # Categories CRUD Operations
@@ -129,8 +134,10 @@ def read_category(
     summary="Create a new training",
     description="Create a new training record for a user.",
 )
-def create_training(training: training_schemas.TrainingCreate, db: Session = Depends(get_db)):
-    return training_crud.create_training(db,training)
+def create_training(training: training_schemas.TrainingCreate, db: Session = Depends(get_db), current_user: user_schemas.UserResponse = Depends(is_valid_user)):
+    if training.user_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="Cannot create training for another user")
+    return training_crud.create_training(db, training)
 
 @app.get(
     "/trainings/stats/by-category/",
@@ -138,7 +145,8 @@ def create_training(training: training_schemas.TrainingCreate, db: Session = Dep
     summary="Get training stats by category",
     description="Retrieve training statistics by category for a date range. Accessible by the user or admins.",
 )
-def get_stats_by_category( user_id: Optional[int] = Query(None),date_from: date = Query(...), date_to: date = Query(...),db: Session = Depends(get_db)):
+def get_stats_by_category( user_id: Optional[int] = Query(None),date_from: date = Query(...), date_to: date = Query(...),db: Session = Depends(get_db),
+    current_user: user_schemas.UserResponse = Depends(is_admin_user)):
     return training_crud.get_stats_by_category(db, user_id, date_from, date_to)
 
 @app.get(
@@ -147,7 +155,9 @@ def get_stats_by_category( user_id: Optional[int] = Query(None),date_from: date 
     summary="Get all-time training stats by category",
     description="Retrieve all-time training statistics by category for a specific user. Accessible by the user or admins.",
 )
-def get_stats_all_time(user_id: int, db: Session = Depends(get_db)):
+def get_stats_all_time(user_id: int, db: Session = Depends(get_db), current_user: user_schemas.UserResponse = Depends(is_valid_user)):
+    if user_id != current_user.user_id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     return training_crud.get_stats_all_time(db, user_id)
 
 @app.get(
@@ -160,8 +170,11 @@ def get_total_training_time(
     user_id: Optional[int] = Query(None),
     date_from: date = Query(...),
     date_to: date = Query(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: user_schemas.UserResponse = Depends(is_valid_user)
 ):
+    if user_id and user_id != current_user.user_id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     return training_crud.get_total_training_time(db, user_id, date_from, date_to)
 
 @app.get(
@@ -170,7 +183,8 @@ def get_total_training_time(
     summary="Get training stats by subscription",
     description="Retrieve training statistics by category and subscription type for a date range. Accessible by the user or admins.",
 )
-def get_stats_by_cat_sub(user_id: Optional[int] = Query(None),date_from: date = Query(...), date_to: date = Query(...),db: Session = Depends(get_db)):
+def get_stats_by_cat_sub(user_id: Optional[int] = Query(None),date_from: date = Query(...), date_to: date = Query(...),db: Session = Depends(get_db),
+    current_user: user_schemas.UserResponse = Depends(is_admin_user)):
     return training_crud.get_stats_by_cat_sub(db,user_id, date_from, date_to)
 
 @app.get(
@@ -179,5 +193,8 @@ def get_stats_by_cat_sub(user_id: Optional[int] = Query(None),date_from: date = 
     summary="Get training stats by day of week",
     description="Retrieve training statistics by day of week for a date range. Accessible by the user or admins.",
 )
-def get_time_by_day_of_week(user_id: Optional[int] = Query(None),date_from: date = Query(...), date_to: date = Query(...),db: Session = Depends(get_db)):
+def get_time_by_day_of_week(user_id: Optional[int] = Query(None),date_from: date = Query(...), date_to: date = Query(...),db: Session = Depends(get_db),
+    current_user: user_schemas.UserResponse = Depends(is_valid_user)):
+    if user_id and user_id != current_user.user_id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     return training_crud.get_time_by_day_of_week(db, user_id, date_from, date_to)
