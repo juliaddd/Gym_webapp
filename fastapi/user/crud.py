@@ -1,5 +1,5 @@
 from .models import UserDB
-from .schemas import UserBase, UserCreate, UserResponse, UserUpdate, UserLoginRequest, UserSearchResult, SubscriptionType, UserRole, UserCountBySubscriptionResponse
+from .schemas import UserBase, UserCreate, UserResponse, UserUpdate, UserSearchResult, SubscriptionType, UserRole, UserCountBySubscriptionResponse
 from typing import Optional
 from fastapi import HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -76,10 +76,8 @@ def get_user(db: Session, user_id: int):
          raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
-def login_user(db: Session, user: UserLoginRequest):
-    db_user = db.query(UserDB).filter(UserDB.email == user.email).first()
-    if not db_user or not verify_password(user.password, db_user.password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+def get_user_by_email(db: Session, email: str):
+    db_user = db.query(UserDB).filter(UserDB.email == email).first()
     return db_user
 
 def search_users(

@@ -10,6 +10,9 @@ from user import crud as user_crud, schemas as user_schemas
 from category import crud as category_crud, schemas as category_schemas
 from training import crud as training_crud, schemas as training_schemas
 
+from auth import login_user, Token
+from fastapi.security import OAuth2PasswordRequestForm 
+
 app = FastAPI()
 
 # Allow CORS
@@ -25,6 +28,13 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all methods (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"],  # Allow all headers
 )
+
+
+# LOGIN
+
+@app.post("/login", response_model=Token)
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session =Depends(get_db)):
+    return login_user(db, form_data.username, form_data.password)
 
 
 # User CRUD Operations
@@ -54,10 +64,6 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 )
 def read_user(user_id: int, db: Session = Depends(get_db)):
     return user_crud.get_user(db, user_id)
-
-@app.post("/users/login/", response_model=user_schemas.UserResponse)
-def login_user(credentials: user_schemas.UserLoginRequest,db: Session = Depends(get_db)):
-    return user_crud.login_user(db, credentials)
 
 @app.get(
     "/users/stats/subscriptions",

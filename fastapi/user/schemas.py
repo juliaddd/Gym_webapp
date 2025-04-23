@@ -60,11 +60,6 @@ class UserUpdate(BaseModel):
     @field_validator("password")
     def validate_password(cls, v):
         return validate_password_complexity(v)
-
-# input data
-class UserLoginRequest(BaseModel):
-    email: EmailStr
-    password: str
     
 # output fields
 class UserSearchResult(BaseModel):
