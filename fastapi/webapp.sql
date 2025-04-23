@@ -2,10 +2,10 @@
 -- version 5.1.1deb5ubuntu1
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost:3306
--- Generation Time: Mar 20, 2025 at 04:54 PM
--- Server version: 10.6.18-MariaDB-0ubuntu0.22.04.1
--- PHP Version: 8.1.2-1ubuntu2.20
+-- Хост: localhost:3306
+-- Время создания: Апр 23 2025 г., 19:24
+-- Версия сервера: 10.6.21-MariaDB-0ubuntu0.22.04.2
+-- Версия PHP: 8.1.2-1ubuntu2.21
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `webapp`
+-- База данных: `webapp`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `Category`
+-- Структура таблицы `Category`
 --
 
 CREATE TABLE `Category` (
@@ -35,7 +35,7 @@ CREATE TABLE `Category` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `Training`
+-- Структура таблицы `Training`
 --
 
 CREATE TABLE `Training` (
@@ -49,7 +49,7 @@ CREATE TABLE `Training` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `User`
+-- Структура таблицы `User`
 --
 
 CREATE TABLE `User` (
@@ -60,29 +60,22 @@ CREATE TABLE `User` (
   `email` varchar(255) NOT NULL,
   `address` varchar(255) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
-  `subscription_type` enum('VIP','premium','standard') NOT NULL DEFAULT 'standard',
-  `role` enum('USER','ADMIN') NOT NULL DEFAULT 'ADMIN'
+  `subscription_type` enum('vip','premium','standard') NOT NULL DEFAULT 'standard',
+  `role` enum('user','admin') NOT NULL DEFAULT 'user'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `User`
---
-
-INSERT INTO `User` (`user_id`, `name`, `surname`, `phone_number`, `email`, `address`, `password`, `subscription_type`, `role`) VALUES
-(1, 'Yuliya', 'Dabreha', '+48731899411', 'yd000015@red.ujaen.es', 'av. de Madrid, 8', '1111', 'standard', 'ADMIN');
-
---
--- Indexes for dumped tables
+-- Индексы сохранённых таблиц
 --
 
 --
--- Indexes for table `Category`
+-- Индексы таблицы `Category`
 --
 ALTER TABLE `Category`
   ADD PRIMARY KEY (`category_id`);
 
 --
--- Indexes for table `Training`
+-- Индексы таблицы `Training`
 --
 ALTER TABLE `Training`
   ADD PRIMARY KEY (`training_id`),
@@ -90,40 +83,40 @@ ALTER TABLE `Training`
   ADD KEY `category_id` (`category_id`);
 
 --
--- Indexes for table `User`
+-- Индексы таблицы `User`
 --
 ALTER TABLE `User`
   ADD PRIMARY KEY (`user_id`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD UNIQUE KEY `unique_email` (`email`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT для сохранённых таблиц
 --
 
 --
--- AUTO_INCREMENT for table `Category`
+-- AUTO_INCREMENT для таблицы `Category`
 --
 ALTER TABLE `Category`
   MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `Training`
+-- AUTO_INCREMENT для таблицы `Training`
 --
 ALTER TABLE `Training`
   MODIFY `training_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `User`
+-- AUTO_INCREMENT для таблицы `User`
 --
 ALTER TABLE `User`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- Constraints for dumped tables
+-- Ограничения внешнего ключа сохраненных таблиц
 --
 
 --
--- Constraints for table `Training`
+-- Ограничения внешнего ключа таблицы `Training`
 --
 ALTER TABLE `Training`
   ADD CONSTRAINT `Training_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`),
