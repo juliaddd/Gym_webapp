@@ -48,7 +48,7 @@ export default function StartTrainingPage({ category, onBack }) {
 
   const handleSave = () => {
     alert(`Recorded time: ${timeElapsed} seconds (${timeLabel})`);
-    router.back();
+    router.push('/');
   };
 
   const handleBackClick = () => {
@@ -58,14 +58,15 @@ export default function StartTrainingPage({ category, onBack }) {
   return (
     <div className="container mx-auto p-4">
       {/* Back Button */}
-      <div className="flex items-center mb-4">
-        <Button startIcon={<ArrowBackIcon />} onClick={handleBackClick}>
-          Back
-        </Button>
+      <div className="back-button" onClick={handleBackClick} style={{ cursor: 'pointer', margin: '10px' }}>
+        <ArrowBackIcon />
+        <span style={{ marginLeft: '5px' }}>Back</span>
       </div>
 
       {/* Training Category */}
-      <h1 className="text-2xl font-bold text-center mb-8">{category}</h1>
+      <div className="header">
+        <h1>Training</h1>
+      </div>
 
       {/* Timer Display */}
       <div className="flex flex-col items-center mb-8">

@@ -42,7 +42,8 @@ export default function UserMainPage() {
   // Handle category selection (redirect to training page)
 const handleCategorySelect = (category) => {
   console.log('Selected category:', category.title);
-  router.push(`/training/${category.title.toLowerCase()}`); // Use router.push instead
+  router.push('/timer');
+
 };
 
 // Handle statistics click (redirect to statistics page)
