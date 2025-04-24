@@ -44,6 +44,12 @@ const handleLoginSubmit = async (e) => {
             
             // Если передан onLogin, вызываем его (для обратной совместимости)
             if (onLogin) onLogin(loginData);
+            const userData = await fetchUserById(result.user_id);
+            if (userData.role == "admin")
+              router.push('/');
+            else
+              router.push('/');
+
 
             const userData = await fetchUserById(result.user_id);
             if (userData.role == "admin")
@@ -66,50 +72,117 @@ const handleLoginSubmit = async (e) => {
 
   
 
-  return (
-    <div className="login-page-container">
-      <div className="login-form">
-        <h2>Welcome to JaenGym!</h2>
+return (
+    <div
+      style={{
+        backgroundColor: '#fdf9f3',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          width: '100%',
+          maxWidth: '900px',
+          height: '500px',
+          position: 'relative',
+        }}
+      >
+        {/* Left part */}
+        <div
+          style={{
+            width: '50%',
+            padding: '40px 30px',
+            backgroundColor: '#fdf9f3',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
+          <h3 style={{ textAlign: 'center', marginBottom: '15px' }}>
+            Welcome to JaenGym!
+          </h3>
 
-      {/* Profile Icon */}
-      <div className="profile-icon">
-        <ProfileIcon userImage="https://example.com/user-avatar.jpg" onClick={() => {}} />
-      </div>        
-
-        {/* Input Fields */}
-        <form onSubmit={handleLoginSubmit}>
-          <InputField
-            label="Enter login"
-            value={loginData.username}
-            onChange={handleInputChange}
-            name="username"
-          />
-          <InputField
-            label="Enter password"
-            type="password"
-            value={loginData.password}
-            onChange={handleInputChange}
-            name="password"
-          />
-
-          {/* Сообщение об ошибке */}
-          {error && <p className="text-red-500 mb-4">{error}</p>}
-
-          {/* Forgot password and Sign-Up links */}
-          <div className="forgot-signup-links">
-            <span onClick={onForgotPasswordRedirect} className="forgot-password">
-              Forgot password?
-            </span>
-            <a onClick={handleSignUpRedirect} style={{ cursor: 'pointer' }}>
-             Sign up
-            </a>
+          {/* Profile Icon */}
+          <div
+            className="profile-icon"
+            style={{ display: 'flex', justifyContent: 'center', marginBottom: '25px' }}
+          >
+            <ProfileIcon
+              onClick={() => {}}
+              style={{ width: 100, height: 100, borderRadius: '50%' }}
+            />
           </div>
 
-          {/* Submit Button */}
-          <Button variant="contained" type="submit" disabled={loading}>
-             {loading ? 'Logging in...' : 'Log in'}
-          </Button>
-        </form>
+          {/* Input Fields */}
+          <form onSubmit={handleLoginSubmit}>
+            <InputField
+              label="Enter login"
+              value={loginData.username}
+              onChange={handleInputChange}
+              name="username"
+            />
+            <InputField
+              label="Enter password"
+              type="password"
+              value={loginData.password}
+              onChange={handleInputChange}
+              name="password"
+            />
+
+            {/* Error Message */}
+            {error && <p className="text-red-500 mb-4">{error}</p>}
+
+            {/* Forgot password and Sign-Up links */}
+            <div className="forgot-signup-links flex justify-between text-sm">
+              <span
+                onClick={onForgotPasswordRedirect}
+                className="cursor-pointer text-blue-600 hover:underline"
+              >
+                Forgot password?
+              </span>
+              <a onClick={handleSignUpRedirect} style={{ cursor: 'pointer' }}>
+              Sign up
+              </a>
+            </div>
+
+            {/* Submit Button */}
+            <Button
+              variant="contained"
+              type="submit"
+              disabled={loading}
+              style={{ backgroundColor: '#33b5aa', border: 'none', marginTop: '20px' }}
+            >
+              {loading ? 'Logging in...' : 'Log in'}
+            </Button>
+          </form>
+        </div>
+
+        {/* Right part */}
+        <div
+          style={{
+            position: 'absolute',
+            right: 20,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '45%',
+            height: '95%',
+            backgroundColor: '#999',
+            borderRadius: '20px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <img
+            src="/images/gym.png"
+            alt="Barbell"
+            style={{ maxWidth: '100%', height: 'auto' }}
+          />
+        </div>
       </div>
     </div>
   );
