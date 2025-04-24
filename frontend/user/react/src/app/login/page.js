@@ -44,12 +44,6 @@ const handleLoginSubmit = async (e) => {
             
             // Если передан onLogin, вызываем его (для обратной совместимости)
             if (onLogin) onLogin(loginData);
-            const userData = await fetchUserById(result.user_id);
-            if (userData.role == "admin")
-              router.push('/');
-            else
-              router.push('/');
-
 
             const userData = await fetchUserById(result.user_id);
             if (userData.role == "admin")
@@ -144,16 +138,22 @@ return (
               >
                 Forgot password?
               </span>
-              <a onClick={handleSignUpRedirect} style={{ cursor: 'pointer' }}>
-              Sign up
-              </a>
+
+              <span
+                onClick={handleSignUpRedirect}
+                className="cursor-pointer text-blue-600 hover:underline"
+              >
+                Sign up
+              </span>
+
             </div>
 
-            {/* Submit Button */}
+            {/* Submit Button */}           
             <Button
               variant="contained"
               type="submit"
               disabled={loading}
+              fullWidth
               style={{ backgroundColor: '#33b5aa', border: 'none', marginTop: '20px' }}
             >
               {loading ? 'Logging in...' : 'Log in'}
