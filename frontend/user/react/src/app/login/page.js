@@ -4,14 +4,16 @@ import InputField from '@/app/components/inputfield'; // Assuming InputField is 
 import ProfileIcon from '@/app/components/profileicon'; // The ProfileIcon component
 import Button from '@mui/material/Button';
 import { useRouter } from 'next/navigation';
-import { loginUser } from '../../api';
+import { loginUser, fetchUserById } from '../../api';
 
 export default function LoginPage({ onLogin, onForgotPasswordRedirect }) {
   const router = useRouter(); // Next.js useRouter hook for navigation
+
   const [loginData, setLoginData] = useState({
     username: '',
     password: '',
   });
+
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -28,29 +30,35 @@ const handleLoginSubmit = async (e) => {
         setError(null);
 
         try {
-            // Формируем данные для запроса
+            
             const credentials = {
-                email: loginData.username, // В твоём бэкенде username интерпретируется как email
+                email: loginData.username,
                 password: loginData.password,
             };
+
             const result = await loginUser(credentials);
             
-            // Сохраняем токен и user_id в localStorage
+            // Save token and user_id in localStorage
             localStorage.setItem('token', result.access_token);
             localStorage.setItem('user_id', result.user_id);
             
             // Если передан onLogin, вызываем его (для обратной совместимости)
             if (onLogin) onLogin(loginData);
 
+            const userData = await fetchUserById(result.user_id);
+            if (userData.role == "admin")
+              router.push('/');
+            else
+              router.push('/');
             // Перенаправляем на главную страницу
-            router.push('/');
+            
         } catch (err) {
             setError('Failed to login. Check your email and password.');
             console.error('Login error:', err);
         } finally {
             setLoading(false);
         }
-    };
+};
   
   const handleSignUpRedirect = () => {
     router.push('/registration');// Redirect to registration page

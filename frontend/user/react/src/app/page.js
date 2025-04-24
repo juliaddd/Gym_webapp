@@ -8,20 +8,21 @@ import { fetchUserById, fetchStatsByDayOfWeek, fetchCategories } from '../api';
 
 export default function UserMainPage() {
   const router = useRouter(); // Next.js useRouter hook for navigation
-  // Define a basic user object for the layout CHANGE LATER
+
   const [user, setUser] = useState({
-    avatar: 'https://example.com/user-avatar.jpg', // Заглушка на случай, если данные не загрузились
+    avatar: 'https://example.com/user-avatar.jpg',
     name: 'Loading...',
   });
 
   const [statistics, setStatistics] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true); // Состояние загрузки
-  // Загрузка данных пользователя при монтировании компонента
+  const [loading, setLoading] = useState(true);
+
+  // Loading user data during mountiong
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userId = localStorage.getItem('user_id'); // Получаем user_id из localStorage
+        const userId = localStorage.getItem('user_id'); // Gitting user_id from localStorage
         if (!userId) {
           throw new Error('User ID not found in localStorage');
         }
@@ -31,14 +32,15 @@ export default function UserMainPage() {
           throw new Error('Token not found in localStorage');
         }
 
-        const userData = await fetchUserById(userId); // Запрашиваем данные пользователя
+        const userData = await fetchUserById(userId); // We ask for user data from back
+
         setUser({
-          avatar: userData.avatar || 'https://example.com/user-avatar.jpg', // Если аватар не указан
+          avatar: userData.avatar || 'https://example.com/user-avatar.jpg', // if there are no prof pic
           name: `${userData.name} ${userData.surname || ''}`.trim(),
         });
+
       } catch (error) {
         console.error('Error fetching user data:', error);
-        // Если ошибка, можно перенаправить на страницу логина
         router.push('/login');
       }
     };
@@ -58,14 +60,33 @@ export default function UserMainPage() {
           throw new Error('User ID not found in localStorage');
         }
 
+        
         // Задаём диапазон дат (например, последние 7 дней)
-        const today = new Date();
-        const dateTo = today.toISOString().split('T')[0]; // Сегодня в формате YYYY-MM-DD
-        const dateFrom = new Date(today.setDate(today.getDate() - 7))
-          .toISOString()
-          .split('T')[0]; // 7 дней назад
+        // const today = new Date();
+        // const dateTo = today.toISOString().split('T')[0]; // Сегодня в формате YYYY-MM-DD
+        // const dateFrom = new Date(today.setDate(today.getDate() - 7))
+        //   .toISOString()
+        //   .split('T')[0]; // 7 дней назад
 
-        const stats = await fetchStatsByDayOfWeek(userId, dateFrom, dateTo);
+        // const stats = await fetchStatsByDayOfWeek(userId, dateFrom, dateTo);
+        // Определяем понедельник текущей недели
+      const today = new Date();
+      const dayOfWeek = today.getDay(); // воскресенье — 0, понедельник — 1, ..., суббота — 6
+      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // если воскресенье — идем назад на 6 дней
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + diffToMonday);
+      monday.setHours(0, 0, 0, 0);
+
+      // Воскресенье текущей недели — прибавим 6 дней от понедельника
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+
+      // Преобразуем в строки
+      const dateFrom = monday.toISOString().split('T')[0];
+      const dateTo = sunday.toISOString().split('T')[0];
+      const stats = await fetchStatsByDayOfWeek(userId, dateFrom, dateTo);
+
         // Приводим данные к формату, который ожидает StatisticsChart
         // const formattedStats = stats.map((stat) => ({
         //   day: stat.day_of_week,
