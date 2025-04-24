@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect  } from 'react';
 import { useRouter } from 'next/navigation';
 import ProfileIcon from './components/profileicon';
 import StatisticsChart from './components/statisticschart';
@@ -14,6 +14,9 @@ export default function UserMainPage() {
     name: 'Loading...',
   });
 
+  const [statistics, setStatistics] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true); // Состояние загрузки
   // Загрузка данных пользователя при монтировании компонента
   useEffect(() => {
     const fetchUserData = async () => {
@@ -64,11 +67,12 @@ export default function UserMainPage() {
 
         const stats = await fetchStatsByDayOfWeek(userId, dateFrom, dateTo);
         // Приводим данные к формату, который ожидает StatisticsChart
-        const formattedStats = stats.map((stat) => ({
-          day: stat.day_of_week,
-          value: stat.total_time,
-        }));
-        setStatistics(formattedStats);
+        // const formattedStats = stats.map((stat) => ({
+        //   day: stat.day_of_week,
+        //   value: stat.total_training_time,
+        // }));
+        setStatistics(stats);
+        console.log('Formatted Stats for Chart:', stats);
       } catch (error) {
         console.error('Error fetching statistics:', error);
         // Если ошибка, можно показать заглушку
@@ -105,12 +109,12 @@ export default function UserMainPage() {
         console.error('Error fetching categories:', error);
         // Если ошибка, можно показать заглушку
         setCategories([
-          { id: 1, title: 'Cardio', imageUrl: '/path-to-cardio-image.jpg' },
+          { id: 1, title: 'Abs', imageUrl: '/path-to-cardio-image.jpg' },
           { id: 2, title: 'Stretching', imageUrl: '/path-to-stretching-image.jpg' },
           { id: 3, title: 'Back', imageUrl: '/path-to-back-image.jpg' },
           { id: 4, title: 'Arms', imageUrl: '/path-to-arms-image.jpg' },
           { id: 5, title: 'Legs', imageUrl: '/path-to-legs-image.jpg' },
-          { id: 6, title: 'Abs', imageUrl: '/path-to-abs-image.jpg' },
+          { id: 6, title: 'Cardio', imageUrl: '/path-to-abs-image.jpg' },
         ]);
       }
     };

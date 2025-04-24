@@ -9,11 +9,11 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 export default function StatisticsChart({ data, onClick }) {
   // Преобразование данных в формат, подходящий для Chart.js
   const chartData = {
-    labels: data.map(item => item.day), // Дни недели
+    labels: data.map((item) => item.day_of_week), // Дни недели
     datasets: [
       {
         label: 'Workout Statistics',
-        data: data.map(item => item.value), // Значения статистики
+        data: data.map((item) => item.total_training_time), // Значения статистики
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         borderColor: 'rgba(75, 192, 192, 1)',
         borderWidth: 1,
