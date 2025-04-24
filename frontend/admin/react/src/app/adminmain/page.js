@@ -1,16 +1,14 @@
 'use client';
-
 import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
-import 'chart.js/auto';
-import { Search, Filter, Edit, Save, Trash2, Check, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
+import { Search, Filter, Edit, Trash2, Check } from 'lucide-react';
 import TextField from '@mui/material/TextField';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import 'chart.js/auto';
 
 const dummyUsers = Array.from({ length: 30 }).map((_, i) => {
   const role = i % 3 === 0 ? 'admin' : 'user';
@@ -89,7 +87,7 @@ export default function AdminMainPage() {
 
   return (
     <div className="flex h-screen bg-[#fdf9f3] overflow-hidden">
-      {/* Left sidebar with user list and filters */}
+      {/* Sidebar */}
       <div className="w-[350px] p-4 border-r border-gray-200 flex flex-col">
         <div className="relative mb-4">
           <input
@@ -161,31 +159,29 @@ export default function AdminMainPage() {
                 selectedUserId === user.id ? 'bg-gray-300' : 'bg-gray-200'
               }`}
             >
-              <img
-                src="/images/user.jpg"
-                className="w-6 h-6 rounded-full"
-                alt="avatar"
-              />
+              <img src="/images/user.jpg" className="w-6 h-6 rounded-full" alt="avatar" />
               <span className="text-sm">{user.name}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Right side with chart and user details */}
+      {/* Main content */}
       <div className="flex-1 p-4 flex flex-col items-center gap-4">
-        {/* Chart */}
         <div className="h-1/4 w-4/5">
           <Bar data={chartData} options={chartOptions} />
           <div className="text-center mt-2">
-            <button className="text-blue-500 underline hover:text-blue-700">
+            <button
+              className="text-blue-500 underline hover:text-blue-700"
+              onClick={() => router.push('/statistics')}
+            >
               See full statistics
             </button>
           </div>
         </div>
 
-        {/* User info section */}
-        <div className="h-4/5 w-5/5 bg-gray-100 p-4 rounded-xl shadow">
+        {/* User info panel */}
+        <div className="h-4/5 w-full max-w-5xl bg-gray-100 p-4 rounded-xl shadow">
           {!selectedUser ? (
             <div className="h-full flex items-center justify-center text-gray-500">
               Select a user for more
@@ -255,10 +251,3 @@ export default function AdminMainPage() {
     </div>
   );
 }
-
-
-
-
-
-
-
