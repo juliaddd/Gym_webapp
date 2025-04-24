@@ -1,14 +1,11 @@
 'use client';
+
 import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { useRouter } from 'next/navigation';
-import { Search, Filter, Edit, Trash2, Check } from 'lucide-react';
-import TextField from '@mui/material/TextField';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
 import 'chart.js/auto';
+import Sidebar from '../components/Sidebar';
+import UserDetails from '../components/UserDetails';
 
 const dummyUsers = Array.from({ length: 30 }).map((_, i) => {
   const role = i % 3 === 0 ? 'admin' : 'user';
@@ -53,120 +50,49 @@ export default function AdminMainPage() {
   const [filterRoles, setFilterRoles] = useState([]);
   const [filterSubtypes, setFilterSubtypes] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [editableUser, setEditableUser] = useState(null);
+  const [editableUser, setEditableUser] = useState({});
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
 
-  const toggleFilter = (filterSetter, value) => {
-    filterSetter((prev) =>
-      prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]
-    );
+  const toggleShowFilter = () => setShowFilter(!showFilter);
+
+  const toggleFilter = (type, value) => {
+    if (type === 'reset') {
+      setFilterRoles([]);
+      setFilterSubtypes([]);
+    } else if (type === 'role') {
+      setFilterRoles((prev) => prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]);
+    } else if (type === 'subtype') {
+      setFilterSubtypes((prev) => prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]);
+    }
   };
 
   const filteredUsers = dummyUsers.filter((user) => {
+    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase());
     const roleOk = filterRoles.length === 0 || filterRoles.includes(user.role);
     const subtypeOk = filterSubtypes.length === 0 || filterSubtypes.includes(user.subtype);
-    return roleOk && subtypeOk;
+    return matchesSearch && roleOk && subtypeOk;
   });
 
   const selectedUser = dummyUsers.find((u) => u.id === selectedUserId);
 
-  const handleEdit = () => {
-    setIsEditing(true);
-    setEditableUser({ ...selectedUser });
-  };
-
-  const handleSave = () => {
-    setIsEditing(false);
-  };
-
-  const handleDelete = () => {
-    setShowConfirmDelete(false);
-    setSelectedUserId(null);
-  };
-
   return (
     <div className="flex h-screen bg-[#fdf9f3] overflow-hidden">
-      {/* Sidebar */}
-      <div className="w-[350px] p-4 border-r border-gray-200 flex flex-col">
-        <div className="relative mb-4">
-          <input
-            type="text"
-            placeholder="Search"
-            className="w-full pl-8 pr-10 py-2 rounded bg-gray-100 text-sm"
-          />
-          <Search size={16} className="absolute left-2 top-2.5 text-gray-400" />
-          <Filter
-            size={16}
-            className="absolute right-2 top-2.5 text-gray-400 cursor-pointer"
-            onClick={() => setShowFilter(!showFilter)}
-          />
-          {showFilter && (
-            <div className="absolute top-10 left-0 w-full bg-white shadow rounded p-3 text-sm z-10">
-              <div className="mb-2 font-semibold">Role</div>
-              {['admin', 'user'].map((role) => (
-                <div key={role} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={filterRoles.includes(role)}
-                    onChange={() => toggleFilter(setFilterRoles, role)}
-                  />
-                  <label>{role}</label>
-                </div>
-              ))}
-              <div className="mt-2 mb-2 font-semibold">Subscription</div>
-              {['VIP', 'Standard', 'Premium'].map((type) => (
-                <div key={type} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={filterSubtypes.includes(type)}
-                    onChange={() => toggleFilter(setFilterSubtypes, type)}
-                  />
-                  <label>{type}</label>
-                </div>
-              ))}
-              <button
-                onClick={() => {
-                  setFilterRoles([]);
-                  setFilterSubtypes([]);
-                }}
-                className="w-full bg-gray-200 text-black rounded py-1 mt-2"
-              >
-                Clear all
-              </button>
-            </div>
-          )}
-        </div>
+      <Sidebar
+        filteredUsers={filteredUsers}
+        selectedUserId={selectedUserId}
+        setSelectedUserId={setSelectedUserId}
+        setIsEditing={setIsEditing}
+        showFilter={showFilter}
+        toggleShowFilter={toggleShowFilter}
+        filterRoles={filterRoles}
+        filterSubtypes={filterSubtypes}
+        toggleFilter={toggleFilter}
+        clearFilters={() => toggleFilter('reset')}
+        router={router}
+      />
 
-        <button
-          onClick={() => router.push('/add-user')}
-          className="mb-4 py-2 bg-[#33b5aa] text-white rounded"
-        >
-          Add user
-        </button>
-
-        <div className="overflow-y-auto flex-1 pr-1">
-          {filteredUsers.map((user) => (
-            <div
-              key={user.id}
-              onClick={() => {
-                setSelectedUserId(user.id);
-                setIsEditing(false);
-              }}
-              className={`flex items-center gap-2 px-2 py-2 mb-1 rounded cursor-pointer ${
-                selectedUserId === user.id ? 'bg-gray-300' : 'bg-gray-200'
-              }`}
-            >
-              <img src="/images/user.jpg" className="w-6 h-6 rounded-full" alt="avatar" />
-              <span className="text-sm">{user.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Main content */}
       <div className="flex-1 p-4 flex flex-col items-center gap-4">
         <div className="h-1/4 w-4/5">
           <Bar data={chartData} options={chartOptions} />
@@ -180,73 +106,16 @@ export default function AdminMainPage() {
           </div>
         </div>
 
-        {/* User info panel */}
-        <div className="h-4/5 w-full max-w-5xl bg-gray-100 p-4 rounded-xl shadow">
-          {!selectedUser ? (
-            <div className="h-full flex items-center justify-center text-gray-500">
-              Select a user for more
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4">
-              <div className="flex justify-between items-start">
-                <img src="/images/user.jpg" alt="Avatar" className="w-20 h-20 rounded-full" />
-                <div className="flex gap-2 items-center">
-                  {isEditing ? (
-                    <Check onClick={handleSave} className="cursor-pointer" />
-                  ) : (
-                    <Edit onClick={handleEdit} className="cursor-pointer" />
-                  )}
-                  <Trash2 onClick={() => setShowConfirmDelete(true)} className="cursor-pointer" />
-                </div>
-              </div>
-
-              {showConfirmDelete && (
-                <div className="bg-red-100 p-2 rounded text-red-700">
-                  <div className="flex justify-between items-center">
-                    <span>Are you sure you want to delete this user?</span>
-                    <div className="flex gap-2">
-                      <button onClick={handleDelete} className="text-sm bg-red-500 text-white px-2 rounded">Yes</button>
-                      <button onClick={() => setShowConfirmDelete(false)} className="text-sm bg-gray-300 px-2 rounded">No</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                {['name', 'surname', 'email', 'phone', 'id', 'address', 'city'].map((field) => (
-                  <TextField
-                    key={field}
-                    fullWidth
-                    variant="outlined"
-                    label={field}
-                    value={editableUser?.[field] || selectedUser[field]}
-                    onChange={(e) =>
-                      setEditableUser((prev) => ({ ...prev, [field]: e.target.value }))
-                    }
-                    disabled={!isEditing}
-                  />
-                ))}
-
-                <FormControl fullWidth variant="outlined" disabled={!isEditing}>
-                  <InputLabel>Sub type</InputLabel>
-                  <Select
-                    value={editableUser?.subtype || selectedUser.subtype}
-                    onChange={(e) =>
-                      setEditableUser((prev) => ({ ...prev, subtype: e.target.value }))
-                    }
-                    label="Sub type"
-                  >
-                    {['VIP', 'Standard', 'Premium'].map((type) => (
-                      <MenuItem key={type} value={type}>
-                        {type}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </div>
-            </div>
-          )}
-        </div>
+        <UserDetails
+          selectedUser={selectedUser}
+          isEditing={isEditing}
+          setIsEditing={setIsEditing}
+          editableUser={editableUser}
+          setEditableUser={setEditableUser}
+          showConfirmDelete={showConfirmDelete}
+          setShowConfirmDelete={setShowConfirmDelete}
+          setSelectedUserId={setSelectedUserId}
+        />
       </div>
     </div>
   );

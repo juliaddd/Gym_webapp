@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import UserForm from '../components/UserForm';
 import AdminForm from '../components/AdminForm';
-import ProfileIcon from '../components/ProfileIcon';
 
 export default function AddUserPage() {
   const [status, setStatus] = useState('user');
