@@ -48,23 +48,31 @@ export const fetchUsers = async (skip = 0, limit = 100) => {
 // Get user by ID
 export const fetchUserById = async (userId) => {
     try {
-        const response = await fetch(`${apiBaseUrl}/users/${userId}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${apiBaseUrl}/users/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
         return handleResponse(response);
     } catch (error) {
         console.error(`Error fetching user with ID ${userId}:`, error);
         throw error;
     }
 };
-
 // User login
 export const loginUser = async (credentials) => {
     try {
-        const response = await fetch(`${apiBaseUrl}/users/login/`, {
+        const formData = new URLSearchParams();
+        formData.append('username', credentials.email);
+        formData.append('password', credentials.password);
+
+        const response = await fetch(`${apiBaseUrl}/login`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: JSON.stringify(credentials),
+            body: formData.toString(),
         });
         return handleResponse(response);
     } catch (error) {
@@ -234,12 +242,17 @@ export const fetchStatsByCategoryAndSubscription = async (userId, dateFrom, date
 // Get statistics by day of week
 export const fetchStatsByDayOfWeek = async (userId, dateFrom, dateTo) => {
     try {
+        const token = localStorage.getItem('token');
         const params = new URLSearchParams({
             date_from: dateFrom,
             date_to: dateTo,
         });
         if (userId) params.append('user_id', userId);
-        const response = await fetch(`${apiBaseUrl}/trainings/stats/by-day-of-week/?${params.toString()}`);
+        const response = await fetch(`${apiBaseUrl}/trainings/stats/by-day-of-week/?${params.toString()}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
         return handleResponse(response);
     } catch (error) {
         console.error('Error fetching stats by day of week:', error);

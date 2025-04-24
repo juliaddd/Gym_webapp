@@ -9,6 +9,7 @@ from database import get_db
 from user import crud as user_crud, schemas as user_schemas
 from category import crud as category_crud, schemas as category_schemas
 from training import crud as training_crud, schemas as training_schemas
+from user.crud import get_user_by_email
 
 from auth import login_user, Token, is_admin_user, is_valid_user
 from fastapi.security import OAuth2PasswordRequestForm 
@@ -32,9 +33,15 @@ app.add_middleware(
 
 # LOGIN
 
-@app.post("/login", response_model=Token)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session =Depends(get_db)):
-    return login_user(db, form_data.username, form_data.password)
+@app.post("/login", response_model=dict)
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    token = login_user(db, form_data.username, form_data.password)
+    user = get_user_by_email(db, form_data.username)
+    return {
+        "access_token": token.access_token,
+        "token_type": token.token_type,
+        "user_id": user.user_id,
+    }
 
 
 # User CRUD Operations
