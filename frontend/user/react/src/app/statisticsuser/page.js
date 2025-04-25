@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ProfileIcon from '@/app/components/profileicon';
-import StatisticsChart from '@/app/components/statisticschart';
+import StatisticsChart from '../../components/statisticschart';
 import MonthlyCategoryChart from '@/app/components/MonthlyCategoryChart'
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';

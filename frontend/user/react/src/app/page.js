@@ -2,7 +2,7 @@
 import { useState, useEffect  } from 'react';
 import { useRouter } from 'next/navigation';
 import ProfileIcon from './components/profileicon';
-import StatisticsChart from './components/statisticschart';
+import StatisticsChart from '@app/components/statisticschart';
 import CategoryGrid from './components/categorygrid';
 import { fetchUserById, fetchStatsByDayOfWeek, fetchCategories } from '../api'; 
 
