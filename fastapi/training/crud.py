@@ -37,23 +37,28 @@ def create_training(db: Session, training: TrainingCreate):
 
 def get_stats_by_category(db: Session, user_id: Optional[int], date_from: date, date_to: date):
     query = (
-        db.query(
-            CategoryDB.name.label("category_name"),
-            func.sum(TrainingDB.training_duration).label("total_training_time"),
-        )
-        .join(TrainingDB, TrainingDB.category_id == CategoryDB.category_id)
-        .filter(TrainingDB.date.between(date_from, date_to))
-        .group_by(CategoryDB.name)
+    db.query(
+        CategoryDB.category_id.label("category_id"),
+        CategoryDB.name.label("category_name"),
+        func.sum(TrainingDB.training_duration).label("total_training_time"),
     )
+    .join(TrainingDB, TrainingDB.category_id == CategoryDB.category_id)
+    .filter(TrainingDB.date.between(date_from, date_to))
+    .group_by(CategoryDB.category_id, CategoryDB.name)
+)
 
     if user_id:
         query = query.filter(TrainingDB.user_id == user_id)
 
     results = query.all()
     return [
-        CategoryStatsResponse(category_name=row.category_name, total_training_time=row.total_training_time or 0)
-        for row in results
-    ]
+    CategoryStatsResponse(
+        category_id=row.category_id,
+        category_name=row.category_name,
+        total_training_time=row.total_training_time or 0
+    )
+    for row in results
+]
 
 def get_stats_all_time(db: Session, user_id: int):
     results = (
@@ -111,28 +116,35 @@ def get_stats_by_cat_sub( db: Session, user_id: Optional[int], date_from: date, 
 
 
 from sqlalchemy.sql import extract
+from sqlalchemy import select, func
 
-def get_time_by_day_of_week(db: Session, user_id: Optional[int], date_from: date, date_to: date):
 
+def get_time_by_day_of_week(db: Session, user_id: int, date_from: str, date_to: str):
     query = (
-        db.query(
-            func.dayname(TrainingDB.date).label("day_of_week"),
-            func.sum(TrainingDB.training_duration).label("total_training_time")
+        select(
+            func.dayofweek(TrainingDB.date).label('day_num'),
+            func.sum(TrainingDB.training_duration).label('total_training_time')
         )
-        .filter(TrainingDB.date.between(date_from, date_to))
+        .where(TrainingDB.user_id == user_id)
+        .where(TrainingDB.date >= date_from)
+        .where(TrainingDB.date <= date_to)
+        .group_by('day_num')
     )
 
-    if user_id:
-        query = query.filter(TrainingDB.user_id == user_id)
+    results = db.execute(query).all()
 
-    results = (
-        query
-        .group_by(func.dayname(TrainingDB.date))
-        .all()
-    )
+    # MySQL: 1 = Sunday, 2 = Monday, ..., 7 = Saturday
+    day_mapping = {
+        1: "Sunday", 2: "Monday", 3: "Tuesday", 4: "Wednesday",
+        5: "Thursday", 6: "Friday", 7: "Saturday"
+    }
+    stats_dict = {day: 0 for day in day_mapping.values()}
+
+    for result in results:
+        day_num = int(result.day_num)
+        stats_dict[day_mapping[day_num]] += float(result.total_training_time or 0)
+
     return [
-        DayOfWeekStatsResponse(
-            day_of_week=row.day_of_week,
-            total_training_time=row.total_training_time or 0
-        ) for row in results
+        {"day_of_week": day, "total_training_time": total_training_time}
+        for day, total_training_time in stats_dict.items()
     ]
