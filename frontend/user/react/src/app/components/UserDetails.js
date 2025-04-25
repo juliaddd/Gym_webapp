@@ -7,6 +7,7 @@ import MenuItem from '@mui/material/MenuItem';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import { Edit, Check, Trash2 } from 'lucide-react';
+import ProfileIcon from '@/app/components/profileicon';
 
 export default function UserDetails({
   selectedUser,
@@ -20,7 +21,7 @@ export default function UserDetails({
 }) {
   if (!selectedUser) {
     return (
-      <div className="h-4/5 w-5/5 bg-gray-100 p-4 rounded-xl shadow flex items-center justify-center text-gray-500">
+      <div className="h-3/5 w-5/5 bg-gray-100 p-4 rounded-xl shadow flexitems-center justify-center text-gray-500  mt-15">
         Select a user for more
       </div>
     );
@@ -41,9 +42,9 @@ export default function UserDetails({
   };
 
   return (
-    <div className="h-4/5 w-5/5 bg-gray-100 p-4 rounded-xl shadow flex flex-col gap-4 overflow-y-auto">
+    <div className="h-3/5 w-5/5 bg-gray-100 p-4 rounded-xl shadow flex flex-col gap-4 overflow-y-auto  mt-15">
       <div className="flex justify-between items-start">
-        <img src="/images/user.jpg" alt="Avatar" className="w-20 h-20 rounded-full" />
+         <ProfileIcon userImage={user.avatar} onClick={handleProfileClick} />
         <div className="flex gap-2 items-center">
           {isEditing ? (
             <Check onClick={handleSave} className="cursor-pointer" />

@@ -1,41 +1,75 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { useRouter } from 'next/navigation';
 import 'chart.js/auto';
+import ProfileIcon from '@/app/components/profileicon';
+import StatisticsChart from '@/app/components/statisticschart';
 import Sidebar from '../components/Sidebar';
 import UserDetails from '../components/UserDetails';
 
-const dummyUsers = Array.from({ length: 30 }).map((_, i) => {
-  const role = i % 3 === 0 ? 'admin' : 'user';
-  const subtype = i % 3 === 0 ? 'VIP' : i % 3 === 1 ? 'Standard' : 'Premium';
-  const shortSubtype = subtype === 'VIP' ? 'V' : subtype === 'Standard' ? 'S' : 'P';
-  const name = `${role}${(i + 1).toString().padStart(3, '0')} ${role === 'admin' ? 'A' : shortSubtype}`;
-  return {
-    id: i + 1,
-    name,
-    role,
-    surname: 'Zajaceva',
-    email: `user${i + 1}@example.com`,
-    phone: '+34 11111111',
-    address: 'Av. de Madrid',
-    city: 'Jaen',
-    subtype,
-  };
-});
 
-const chartData = {
-  labels: ['2019', '2020', '2021', '2022', '2023', '2024', '2025'],
-  datasets: [
-    {
-      label: 'Users per year',
-      backgroundColor: '#33b5aa',
-      borderRadius: 5,
-      data: [5, 10, 15, 20, 30, 45, 60],
-    },
-  ],
+const fetchUsers = async () => {
+  const response = await fetch('/api/users');  // Здесь мы делаем запрос к API
+  const data = await response.json();
+  return data.users || [];  // Возвращаем пользователей, полученных с сервера
 };
+
+
+const dummyUsers = [
+  { id: 1, name: 'admin001 V', role: 'admin', subtype: 'VIP', email: 'admin1@example.com' },
+  { id: 2, name: 'user002 S', role: 'user', subtype: 'Standard', email: 'user2@example.com' },
+  { id: 3, name: 'user003 P', role: 'user', subtype: 'Premium', email: 'user3@example.com' },
+  // добавьте больше данных по мере необходимости
+];
+
+const fetchCategories = async () => {
+  try {
+    const response = await fetch('/api/categories');
+    if (!response.ok) {
+      throw new Error('Failed to fetch categories');
+    }
+    const data = await response.json();
+    return data.map((category) => ({
+      id: category.category_id,
+      title: category.name,
+      imageUrl: category.image || '/path-to-default-image.jpg',
+    }));
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return [
+      { id: 1, title: 'Abs', imageUrl: '/path-to-cardio-image.jpg' },
+      { id: 2, title: 'Stretching', imageUrl: '/path-to-stretching-image.jpg' },
+      { id: 3, title: 'Back', imageUrl: '/path-to-back-image.jpg' },
+      { id: 4, title: 'Arms', imageUrl: '/path-to-arms-image.jpg' },
+      { id: 5, title: 'Legs', imageUrl: '/path-to-legs-image.jpg' },
+      { id: 6, title: 'Cardio', imageUrl: '/path-to-abs-image.jpg' },
+    ];
+  }
+};
+
+const fetchHoursByCategory = async () => {
+  try {
+    const response = await fetch('/api/hours-by-category');
+    if (!response.ok) {
+      throw new Error('Failed to fetch hours by category');
+    }
+    const data = await response.json();
+    return data; // Expected format: [{ category_id: 1, total_hours: 120 }, ...]
+  } catch (error) {
+    console.error('Error fetching hours:', error);
+    return [
+      { category_id: 1, total_hours: 120 },
+      { category_id: 2, total_hours: 80 },
+      { category_id: 3, total_hours: 90 },
+      { category_id: 4, total_hours: 110 },
+      { category_id: 5, total_hours: 100 },
+      { category_id: 6, total_hours: 130 },
+    ];
+  }
+};
+
 
 const chartOptions = {
   responsive: true,
@@ -53,7 +87,25 @@ export default function AdminMainPage() {
   const [editableUser, setEditableUser] = useState({});
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [chartData, setChartData] = useState([]);
   const router = useRouter();
+
+  useEffect(() => {
+    const loadData = async () => {
+      const categories = await fetchCategories();
+      const hoursData = await fetchHoursByCategory();
+      // Map categories to chartData format, matching category_id to total_hours
+      const formattedChartData = categories.map((category) => {
+        const hoursEntry = hoursData.find((h) => h.category_id === category.id);
+        return {
+          day_of_week: category.title, // Using category title as label
+          total_training_time: hoursEntry ? hoursEntry.total_hours : 0, // Total hours
+        };
+      });
+      setChartData(formattedChartData);
+    };
+    loadData();
+  }, []);
 
   const toggleShowFilter = () => setShowFilter(!showFilter);
 
@@ -95,18 +147,23 @@ export default function AdminMainPage() {
 
       <div className="flex-1 p-4 flex flex-col items-center gap-4">
         <div className="h-1/4 w-4/5">
-          <Bar data={chartData} options={chartOptions} />
-          <div className="text-center mt-2">
-            <button
-              className="text-blue-500 underline hover:text-blue-700"
+            <StatisticsChart
+              data={chartData}
               onClick={() => router.push('/statistics')}
-            >
-              See full statistics
-            </button>
-          </div>
-        </div>
+              width="40%"
+              height="150px"
+            />
+            <div className="text-center mt-8">
+              <button
+                className="text-blue-500 underline hover:text-blue-700"
+                onClick={() => router.push('/statistics')}
+              >
+                See full statistics
+              </button>
+            </div>
+      </div>
 
-        <UserDetails
+        <UserDetails 
           selectedUser={selectedUser}
           isEditing={isEditing}
           setIsEditing={setIsEditing}
