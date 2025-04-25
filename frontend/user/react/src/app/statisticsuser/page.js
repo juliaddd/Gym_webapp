@@ -2,8 +2,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ProfileIcon from '@/app/components/profileicon';
-import StatisticsChart from '../../components/statisticschart';
+import StatisticsChart from '@/app/components/statisticschart';
 import MonthlyCategoryChart from '@/app/components/MonthlyCategoryChart'
+import CategoryPieChart from '@/app/components/CategoryPieChart'
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -20,6 +21,7 @@ export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) 
   const [monthStatistics, setMonthStatistics] = useState([]);
 
   const [totalMonthlyTime, setTotalMonthlyTime] = useState(0);
+  const [allTimeCategoryStats, setAllTimeCategoryStats] = useState([]);
   const [isLoading, setIsLoading] = useState(true); // Add loading state
 
   const router = useRouter();
@@ -61,6 +63,12 @@ export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) 
       to: lastDayOfMonth.toISOString().split('T')[0],
     };
   };
+
+    // Update getMonthlyTotalTime to use the stored total_time
+   const getMonthlyTotalTime = () => {
+     return totalMonthlyTime?.total_training_time || 0;
+  };
+    
 
   const getMonthName = (offset) => {
     const now = new Date();
@@ -144,11 +152,29 @@ export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) 
     fetchMonthData();
   }, [monthOffset]);
   
-  // Update getMonthlyTotalTime to use the stored total_time
-  const getMonthlyTotalTime = () => {
-    return totalMonthlyTime?.total_training_time || 0;
-  };
-  
+  useEffect(() => {
+    const fetchPieData = async () => {
+    const userId = localStorage.getItem('user_id');
+    const allTimeFrom = '2000-01-01';
+    const today = new Date().toISOString().split('T')[0];
+    
+
+    const data = await fetchStatsByCategory(userId, allTimeFrom, today);
+    const allCategories = await fetchCategories() || [];
+
+    const transformedData = allCategories.map(category => {
+        const categoryData = data.find(item => item.category_id === category.category_id);
+        return {
+          category_name: category.name,
+          total_training_time: categoryData ? categoryData.total_training_time : 0,
+        };
+      });
+      setAllTimeCategoryStats(transformedData);
+    };
+    fetchPieData();
+  }, []);
+
+
   // Handle back button click
   const handleBackClick = () => {
     router.back();
@@ -234,6 +260,11 @@ export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) 
             Total Monthly Training Time: {getMonthlyTotalTime()} minutes
           </p>
         </div>
+
+        {/* Pie Chart Section */}
+        <CategoryPieChart
+        data={allTimeCategoryStats}
+        />
     </div>
   );
 }
