@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import TextField from '@mui/material/TextField';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -17,8 +17,17 @@ export default function UserDetails({
   setEditableUser,
   showConfirmDelete,
   setShowConfirmDelete,
-  setSelectedUserId
+  setSelectedUserId,
+  onSave, // Новый проп для сохранения изменений
+  onDelete, // Новый проп для удаления пользователя
 }) {
+  // Синхронизация editableUser с selectedUser при его изменении
+  useEffect(() => {
+    if (selectedUser) {
+      setEditableUser(selectedUser);
+    }
+  }, [selectedUser, setEditableUser]);
+
   if (!selectedUser) {
     return (
       <div className="h-3/5 w-5/5 bg-gray-100 p-4 rounded-xl shadow flexitems-center justify-center text-gray-500  mt-15">
@@ -33,10 +42,16 @@ export default function UserDetails({
   };
 
   const handleSave = () => {
+    if (onSave) {
+      onSave(editableUser); // Передаём изменённые данные в родительский компонент
+    }
     setIsEditing(false);
   };
 
   const handleDelete = () => {
+    if (onDelete) {
+      onDelete(selectedUser.id); // Уведомляем родительский компонент об удалении
+    }
     setShowConfirmDelete(false);
     setSelectedUserId(null);
   };
@@ -44,7 +59,7 @@ export default function UserDetails({
   return (
     <div className="h-3/5 w-5/5 bg-gray-100 p-4 rounded-xl shadow flex flex-col gap-4 overflow-y-auto  mt-15">
       <div className="flex justify-between items-start">
-         <ProfileIcon userImage={user.avatar} onClick={handleProfileClick} />
+        <ProfileIcon /> {/* Убрали пустой onClick */}
         <div className="flex gap-2 items-center">
           {isEditing ? (
             <Check onClick={handleSave} className="cursor-pointer" />

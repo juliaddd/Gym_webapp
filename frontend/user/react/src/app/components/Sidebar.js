@@ -1,6 +1,8 @@
 'use client';
+
 import React from 'react';
 import { Search, Filter } from 'lucide-react';
+import ProfileIcon from '@/app/components/profileicon';
 
 export default function Sidebar({
   filteredUsers,
@@ -13,7 +15,9 @@ export default function Sidebar({
   filterSubtypes,
   toggleFilter,
   clearFilters,
-  router
+  router,
+  searchTerm,
+  setSearchTerm,
 }) {
   return (
     <div className="w-[350px] p-4 border-r border-gray-200 flex flex-col">
@@ -22,6 +26,8 @@ export default function Sidebar({
           type="text"
           placeholder="Search"
           className="w-full pl-8 pr-10 py-2 rounded bg-gray-100 text-sm"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
         <Search size={16} className="absolute left-2 top-2.5 text-gray-400" />
         <Filter
@@ -84,11 +90,7 @@ export default function Sidebar({
               selectedUserId === user.id ? 'bg-gray-300' : 'bg-gray-200'
             }`}
           >
-            <img
-              src="/images/user.jpg"
-              className="w-6 h-6 rounded-full"
-              alt="avatar"
-            />
+            <ProfileIcon className="w-6 h-6 rounded-full" />
             <span className="text-sm">{user.name}</span>
           </div>
         ))}
@@ -96,5 +98,3 @@ export default function Sidebar({
     </div>
   );
 }
-
-

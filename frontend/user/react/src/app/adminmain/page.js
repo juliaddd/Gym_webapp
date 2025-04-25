@@ -9,67 +9,61 @@ import StatisticsChart from '@/app/components/statisticschart';
 import Sidebar from '../components/Sidebar';
 import UserDetails from '../components/UserDetails';
 
-
-const fetchUsers = async () => {
-  const response = await fetch('/api/users');  // Здесь мы делаем запрос к API
-  const data = await response.json();
-  return data.users || [];  // Возвращаем пользователей, полученных с сервера
-};
-
-
 const dummyUsers = [
-  { id: 1, name: 'admin001 V', role: 'admin', subtype: 'VIP', email: 'admin1@example.com' },
-  { id: 2, name: 'user002 S', role: 'user', subtype: 'Standard', email: 'user2@example.com' },
-  { id: 3, name: 'user003 P', role: 'user', subtype: 'Premium', email: 'user3@example.com' },
-  // добавьте больше данных по мере необходимости
+  {
+    id: 1,
+    name: 'admin001 V',
+    surname: 'Smith',
+    role: 'admin',
+    subtype: 'VIP',
+    email: 'admin1@example.com',
+    phone: '123-456-7890',
+    address: '123 Main St',
+    city: 'New York',
+  },
+  {
+    id: 2,
+    name: 'user002 S',
+    surname: 'Johnson',
+    role: 'user',
+    subtype: 'Standard',
+    email: 'user2@example.com',
+    phone: '234-567-8901',
+    address: '456 Oak Ave',
+    city: 'Los Angeles',
+  },
+  {
+    id: 3,
+    name: 'user003 P',
+    surname: 'Brown',
+    role: 'user',
+    subtype: 'Premium',
+    email: 'user3@example.com',
+    phone: '345-678-9012',
+    address: '789 Pine Rd',
+    city: 'Chicago',
+  },
 ];
 
-const fetchCategories = async () => {
-  try {
-    const response = await fetch('/api/categories');
-    if (!response.ok) {
-      throw new Error('Failed to fetch categories');
-    }
-    const data = await response.json();
-    return data.map((category) => ({
-      id: category.category_id,
-      title: category.name,
-      imageUrl: category.image || '/path-to-default-image.jpg',
-    }));
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    return [
-      { id: 1, title: 'Abs', imageUrl: '/path-to-cardio-image.jpg' },
-      { id: 2, title: 'Stretching', imageUrl: '/path-to-stretching-image.jpg' },
-      { id: 3, title: 'Back', imageUrl: '/path-to-back-image.jpg' },
-      { id: 4, title: 'Arms', imageUrl: '/path-to-arms-image.jpg' },
-      { id: 5, title: 'Legs', imageUrl: '/path-to-legs-image.jpg' },
-      { id: 6, title: 'Cardio', imageUrl: '/path-to-abs-image.jpg' },
-    ];
-  }
-};
+// Заглушка для категорий
+const categories = [
+  { id: 1, title: 'Abs', imageUrl: '/path-to-cardio-image.jpg' },
+  { id: 2, title: 'Stretching', imageUrl: '/path-to-stretching-image.jpg' },
+  { id: 3, title: 'Back', imageUrl: '/path-to-back-image.jpg' },
+  { id: 4, title: 'Arms', imageUrl: '/path-to-arms-image.jpg' },
+  { id: 5, title: 'Legs', imageUrl: '/path-to-legs-image.jpg' },
+  { id: 6, title: 'Cardio', imageUrl: '/path-to-abs-image.jpg' },
+];
 
-const fetchHoursByCategory = async () => {
-  try {
-    const response = await fetch('/api/hours-by-category');
-    if (!response.ok) {
-      throw new Error('Failed to fetch hours by category');
-    }
-    const data = await response.json();
-    return data; // Expected format: [{ category_id: 1, total_hours: 120 }, ...]
-  } catch (error) {
-    console.error('Error fetching hours:', error);
-    return [
-      { category_id: 1, total_hours: 120 },
-      { category_id: 2, total_hours: 80 },
-      { category_id: 3, total_hours: 90 },
-      { category_id: 4, total_hours: 110 },
-      { category_id: 5, total_hours: 100 },
-      { category_id: 6, total_hours: 130 },
-    ];
-  }
-};
-
+// Заглушка для часов по категориям
+const hoursData = [
+  { category_id: 1, total_hours: 120 },
+  { category_id: 2, total_hours: 80 },
+  { category_id: 3, total_hours: 90 },
+  { category_id: 4, total_hours: 110 },
+  { category_id: 5, total_hours: 100 },
+  { category_id: 6, total_hours: 130 },
+];
 
 const chartOptions = {
   responsive: true,
@@ -88,23 +82,22 @@ export default function AdminMainPage() {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [chartData, setChartData] = useState([]);
+  const [users, setUsers] = useState([]); // Состояние для списка пользователей
   const router = useRouter();
 
   useEffect(() => {
-    const loadData = async () => {
-      const categories = await fetchCategories();
-      const hoursData = await fetchHoursByCategory();
-      // Map categories to chartData format, matching category_id to total_hours
-      const formattedChartData = categories.map((category) => {
-        const hoursEntry = hoursData.find((h) => h.category_id === category.id);
-        return {
-          day_of_week: category.title, // Using category title as label
-          total_training_time: hoursEntry ? hoursEntry.total_hours : 0, // Total hours
-        };
-      });
-      setChartData(formattedChartData);
-    };
-    loadData();
+    // Инициализация пользователей
+    setUsers(dummyUsers);
+
+    // Формирование данных для графика
+    const formattedChartData = categories.map((category) => {
+      const hoursEntry = hoursData.find((h) => h.category_id === category.id);
+      return {
+        day_of_week: category.title,
+        total_training_time: hoursEntry ? hoursEntry.total_hours : 0,
+      };
+    });
+    setChartData(formattedChartData);
   }, []);
 
   const toggleShowFilter = () => setShowFilter(!showFilter);
@@ -114,20 +107,30 @@ export default function AdminMainPage() {
       setFilterRoles([]);
       setFilterSubtypes([]);
     } else if (type === 'role') {
-      setFilterRoles((prev) => prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]);
+      setFilterRoles((prev) => (prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]));
     } else if (type === 'subtype') {
-      setFilterSubtypes((prev) => prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]);
+      setFilterSubtypes((prev) => (prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]));
     }
   };
 
-  const filteredUsers = dummyUsers.filter((user) => {
+  const filteredUsers = users.filter((user) => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase());
     const roleOk = filterRoles.length === 0 || filterRoles.includes(user.role);
     const subtypeOk = filterSubtypes.length === 0 || filterSubtypes.includes(user.subtype);
     return matchesSearch && roleOk && subtypeOk;
   });
 
-  const selectedUser = dummyUsers.find((u) => u.id === selectedUserId);
+  const selectedUser = users.find((u) => u.id === selectedUserId);
+
+  // Обработчик сохранения изменений пользователя
+  const handleSaveUser = (updatedUser) => {
+    setUsers((prev) => prev.map((user) => (user.id === updatedUser.id ? updatedUser : user)));
+  };
+
+  // Обработчик удаления пользователя
+  const handleDeleteUser = (userId) => {
+    setUsers((prev) => prev.filter((user) => user.id !== userId));
+  };
 
   return (
     <div className="flex h-screen bg-[#fdf9f3] overflow-hidden">
@@ -143,27 +146,29 @@ export default function AdminMainPage() {
         toggleFilter={toggleFilter}
         clearFilters={() => toggleFilter('reset')}
         router={router}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
       />
 
       <div className="flex-1 p-4 flex flex-col items-center gap-4">
         <div className="h-1/4 w-4/5">
-            <StatisticsChart
-              data={chartData}
+          <StatisticsChart
+            data={chartData}
+            onClick={() => router.push('/statistics')}
+            width="40%"
+            height="150px"
+          />
+          <div className="text-center mt-8">
+            <button
+              className="text-blue-500 underline hover:text-blue-700"
               onClick={() => router.push('/statistics')}
-              width="40%"
-              height="150px"
-            />
-            <div className="text-center mt-8">
-              <button
-                className="text-blue-500 underline hover:text-blue-700"
-                onClick={() => router.push('/statistics')}
-              >
-                See full statistics
-              </button>
-            </div>
-      </div>
+            >
+              See full statistics
+            </button>
+          </div>
+        </div>
 
-        <UserDetails 
+        <UserDetails
           selectedUser={selectedUser}
           isEditing={isEditing}
           setIsEditing={setIsEditing}
@@ -172,6 +177,8 @@ export default function AdminMainPage() {
           showConfirmDelete={showConfirmDelete}
           setShowConfirmDelete={setShowConfirmDelete}
           setSelectedUserId={setSelectedUserId}
+          onSave={handleSaveUser}
+          onDelete={handleDeleteUser}
         />
       </div>
     </div>
