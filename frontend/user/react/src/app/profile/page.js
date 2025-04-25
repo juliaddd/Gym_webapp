@@ -1,24 +1,50 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ProfileForm from '@/app/components/profileform'; // The ProfileForm component
 import ProfileIcon from '@/app/components/profileicon'; // The ProfileIcon component
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'; // The back icon from Material UI
 import { useRouter } from 'next/navigation';
+import { fetchUserById } from '../../api'; 
 
 export default function ProfilePage() {
   const router = useRouter(); // Next.js useRouter hook for navigation
   const [formData, setFormData] = useState({
-    name: 'Karsiaryna',
-    surname: 'Dabreha',
-    email: 'rybka@gmail.com',
-    phone: '+34 731899899',
-    address: 'Av. de Minsk',
-    city: 'Jaen',
-    membershipType: 'Standard',
-    password: '********',
+    name: '',
+    surname: '',
+    email: '',
+    phone: '',
+    address: '',
+    membershipType: '',
     newPassword: '',
     repeatPassword: '',
   });
+
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userId = localStorage.getItem('user_id');
+        
+        const data = await fetchUserById(userId);
+        console.log('Received user data:', data);
+
+        setFormData({
+          name: data.name,
+          surname: data.surname,
+          email: data.email,
+          phone: data.phone_number,
+          address: data.address,
+          membershipType: data.subscription_type,
+          newPassword: '',
+          repeatPassword: '',
+        });
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleFormChange = (field, value) => {
     setFormData(prev => ({

@@ -176,6 +176,7 @@ const handleCategorySelect = (category) => {
 //   router.push('/statisticsuser'); // Use router.push instead
 // };
 
+<<<<<<< HEAD
 //   return (
 //     <div className="container mx-auto px-4 py-8">
 //       {/* Profile Section */}
@@ -195,6 +196,20 @@ const handleCategorySelect = (category) => {
 //         See full statistics
 //       </button>
 //       </div>
+=======
+      {/* Statistics Section */}
+      <h1 className="text-2xl font-bold mb-4">Your Weekly Workout Statistics</h1>
+      <div className="my-8">
+        <StatisticsChart data={statistics} onClick={handleStatisticsClick}/>
+        {/* Кликабельный текст для просмотра полной статистики */}
+      <button
+        onClick={handleStatisticsClick}
+        className="text-blue-500 hover:text-blue-700 underline" style={{ cursor: 'pointer' }}
+      >
+        See full statistics
+      </button>
+      </div>
+>>>>>>> 7f459fe (Implemented loading data from database to user profile)
 
 
 //       {/* Categories Grid */}
