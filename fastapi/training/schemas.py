@@ -17,6 +17,7 @@ class TrainingCategoryStatsRequest(BaseModel):
     user_id: Optional[int] = None 
 
 class CategoryStatsResponse(BaseModel):
+    category_id: int
     category_name: str
     total_training_time: int
 

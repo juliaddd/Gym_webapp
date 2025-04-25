@@ -36,6 +36,7 @@ export default function StatisticsChart({ data, onClick }) {
     },
   };
 
+  if (!data || !Array.isArray(data)) return <div>No data available</div>;
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Отображаем график */}

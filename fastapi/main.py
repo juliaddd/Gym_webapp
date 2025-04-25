@@ -153,7 +153,9 @@ def create_training(training: training_schemas.TrainingCreate, db: Session = Dep
     description="Retrieve training statistics by category for a date range. Accessible by the user or admins.",
 )
 def get_stats_by_category( user_id: Optional[int] = Query(None),date_from: date = Query(...), date_to: date = Query(...),db: Session = Depends(get_db),
-    current_user: user_schemas.UserResponse = Depends(is_admin_user)):
+    current_user: user_schemas.UserResponse = Depends(is_valid_user)):
+    if user_id != current_user.user_id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     return training_crud.get_stats_by_category(db, user_id, date_from, date_to)
 
 @app.get(

@@ -44,13 +44,12 @@ const handleLoginSubmit = async (e) => {
             
             // Если передан onLogin, вызываем его (для обратной совместимости)
             if (onLogin) onLogin(loginData);
-
             const userData = await fetchUserById(result.user_id);
             if (userData.role == "admin")
               router.push('/');
             else
               router.push('/');
-            // Перенаправляем на главную страницу
+
             
         } catch (err) {
             setError('Failed to login. Check your email and password.');

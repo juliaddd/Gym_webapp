@@ -37,23 +37,28 @@ def create_training(db: Session, training: TrainingCreate):
 
 def get_stats_by_category(db: Session, user_id: Optional[int], date_from: date, date_to: date):
     query = (
-        db.query(
-            CategoryDB.name.label("category_name"),
-            func.sum(TrainingDB.training_duration).label("total_training_time"),
-        )
-        .join(TrainingDB, TrainingDB.category_id == CategoryDB.category_id)
-        .filter(TrainingDB.date.between(date_from, date_to))
-        .group_by(CategoryDB.name)
+    db.query(
+        CategoryDB.category_id.label("category_id"),
+        CategoryDB.name.label("category_name"),
+        func.sum(TrainingDB.training_duration).label("total_training_time"),
     )
+    .join(TrainingDB, TrainingDB.category_id == CategoryDB.category_id)
+    .filter(TrainingDB.date.between(date_from, date_to))
+    .group_by(CategoryDB.category_id, CategoryDB.name)
+)
 
     if user_id:
         query = query.filter(TrainingDB.user_id == user_id)
 
     results = query.all()
     return [
-        CategoryStatsResponse(category_name=row.category_name, total_training_time=row.total_training_time or 0)
-        for row in results
-    ]
+    CategoryStatsResponse(
+        category_id=row.category_id,
+        category_name=row.category_name,
+        total_training_time=row.total_training_time or 0
+    )
+    for row in results
+]
 
 def get_stats_all_time(db: Session, user_id: int):
     results = (

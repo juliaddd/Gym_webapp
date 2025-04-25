@@ -183,12 +183,17 @@ export const createTraining = async (trainingData) => {
 // Get training statistics by category with date range
 export const fetchStatsByCategory = async (userId, dateFrom, dateTo) => {
     try {
+        const token = localStorage.getItem('token');
         const params = new URLSearchParams({
             date_from: dateFrom,
             date_to: dateTo,
         });
         if (userId) params.append('user_id', userId);
-        const response = await fetch(`${apiBaseUrl}/trainings/stats/by-category/?${params.toString()}`);
+        const response = await fetch(`${apiBaseUrl}/trainings/stats/by-category/?${params.toString()}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
         return handleResponse(response);
     } catch (error) {
         console.error('Error fetching stats by category:', error);
@@ -210,16 +215,21 @@ export const fetchStatsAllTime = async (userId) => {
 // Get total training time
 export const fetchTotalTrainingTime = async (userId, dateFrom, dateTo) => {
     try {
-        const params = new URLSearchParams({
-            date_from: dateFrom,
-            date_to: dateTo,
-        });
-        if (userId) params.append('user_id', userId);
-        const response = await fetch(`${apiBaseUrl}/trainings/stats/total-time/?${params.toString()}`);
-        return handleResponse(response);
+        const token = localStorage.getItem('token');
+      const params = new URLSearchParams({
+        date_from: dateFrom,
+        date_to: dateTo,
+      });
+      if (userId) params.append('user_id', userId);
+      const response = await fetch(`${apiBaseUrl}/trainings/stats/total-time/?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return handleResponse(response);
     } catch (error) {
-        console.error('Error fetching total training time:', error);
-        throw error;
+      console.error('Error fetching total training time:', error);
+      throw error;
     }
 };
 

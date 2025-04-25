@@ -153,7 +153,6 @@ export default function UserMainPage() {
 const handleCategorySelect = (category) => {
   console.log('Selected category:', category.title);
   router.push('/timer');
-
 };
 
 // Handle statistics click (redirect to statistics page)
