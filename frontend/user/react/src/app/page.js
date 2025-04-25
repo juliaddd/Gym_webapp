@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-'use client';
-import { useState, useEffect  } from 'react';
-import { useRouter } from 'next/navigation';
-import ProfileIcon from './components/profileicon';
-import StatisticsChart from '@/app/components/statisticschart';
-import CategoryGrid from './components/categorygrid';
-import { fetchUserById, fetchStatsByDayOfWeek, fetchCategories } from '../api'; 
-=======
 // 'use client';
 // import { useState, useEffect  } from 'react';
 // import { useRouter } from 'next/navigation';
@@ -14,7 +5,6 @@ import { fetchUserById, fetchStatsByDayOfWeek, fetchCategories } from '../api';
 // import StatisticsChart from '@/app/components/statisticschart';
 // import CategoryGrid from './components/categorygrid';
 // import { fetchUserById, fetchStatsByDayOfWeek, fetchCategories } from '../api'; 
->>>>>>> 262bc4c (Editing admin main page)
 
 // export default function UserMainPage() {
 //   const router = useRouter(); // Next.js useRouter hook for navigation
@@ -160,10 +150,10 @@ import { fetchUserById, fetchStatsByDayOfWeek, fetchCategories } from '../api';
 //   };
 
   // Handle category selection (redirect to training page)
-const handleCategorySelect = (category) => {
-  console.log('Selected category:', category.title);
-  router.push('/timer');
-};
+// const handleCategorySelect = (category) => {
+//   console.log('Selected category:', category.title);
+//   router.push('/timer');
+// };
 //   // Handle category selection (redirect to training page)
 // const handleCategorySelect = (category) => {
 //   console.log('Selected category:', category.title);
@@ -176,7 +166,6 @@ const handleCategorySelect = (category) => {
 //   router.push('/statisticsuser'); // Use router.push instead
 // };
 
-<<<<<<< HEAD
 //   return (
 //     <div className="container mx-auto px-4 py-8">
 //       {/* Profile Section */}
@@ -196,20 +185,6 @@ const handleCategorySelect = (category) => {
 //         See full statistics
 //       </button>
 //       </div>
-=======
-      {/* Statistics Section */}
-      <h1 className="text-2xl font-bold mb-4">Your Weekly Workout Statistics</h1>
-      <div className="my-8">
-        <StatisticsChart data={statistics} onClick={handleStatisticsClick}/>
-        {/* Кликабельный текст для просмотра полной статистики */}
-      <button
-        onClick={handleStatisticsClick}
-        className="text-blue-500 hover:text-blue-700 underline" style={{ cursor: 'pointer' }}
-      >
-        See full statistics
-      </button>
-      </div>
->>>>>>> 7f459fe (Implemented loading data from database to user profile)
 
 
 //       {/* Categories Grid */}
