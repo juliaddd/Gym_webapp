@@ -50,7 +50,7 @@ export default function UserDetails({
 
   const handleDelete = () => {
     if (onDelete) {
-      onDelete(selectedUser.id); // Уведомляем родительский компонент об удалении
+      onDelete(selectedUser.user_id); // Уведомляем родительский компонент об удалении
     }
     setShowConfirmDelete(false);
     setSelectedUserId(null);
@@ -83,7 +83,7 @@ export default function UserDetails({
       )}
 
       <div className="grid grid-cols-2 gap-4">
-        {['name', 'surname', 'email', 'phone', 'id', 'address', 'city'].map((field) => (
+        {['name', 'surname', 'email', 'phone', 'address', 'city'].map((field) => (
           <TextField
             key={field}
             name={field}
@@ -97,14 +97,14 @@ export default function UserDetails({
         ))}
 
         <FormControl fullWidth variant="outlined" disabled={!isEditing}>
-          <InputLabel>Sub type</InputLabel>
+          <InputLabel>Subscription</InputLabel>
           <Select
-            name="subtype"
-            value={editableUser?.subtype || ''}
+            name="subscription_type"
+            value={editableUser?.subscription_type || ''}
             onChange={handleChange}
-            label="Sub type"
+            label={editableUser?.subscription_type}
           >
-            {['VIP', 'Standard', 'Premium'].map((type) => (
+            {['vip', 'standard', 'premium'].map((type) => (
               <MenuItem key={type} value={type}>
                 {type}
               </MenuItem>

@@ -50,13 +50,13 @@ export default function Sidebar({
               </div>
             ))}
             <div className="mt-2 mb-2 font-semibold">Subscription</div>
-            {['VIP', 'Standard', 'Premium'].map((type) => (
+            {['vip', 'standard', 'premium'].map((type) => (
               <div key={type} className="flex items-center mb-2">
                 <input
                   type="checkbox"
                   className="mr-2"
                   checked={filterSubtypes.includes(type)}
-                  onChange={() => toggleFilter('subtype', type)}
+                  onChange={() => toggleFilter('subscription_type', type)}
                 />
                 <label>{type}</label>
               </div>
@@ -81,13 +81,13 @@ export default function Sidebar({
       <div className="overflow-y-auto flex-1 pr-1">
         {filteredUsers.map((user) => (
           <div
-            key={user.id}
+            key={user.user_id}
             onClick={() => {
-              setSelectedUserId(user.id);
+              setSelectedUserId(user.user_id);
               setIsEditing(false);
             }}
             className={`flex items-center gap-2 px-2 py-2 mb-1 rounded cursor-pointer ${
-              selectedUserId === user.id ? 'bg-gray-300' : 'bg-gray-200'
+              selectedUserId === user.user_id ? 'bg-gray-300' : 'bg-gray-200'
             }`}
           >
             <ProfileIcon className="w-6 h-6 rounded-full" />

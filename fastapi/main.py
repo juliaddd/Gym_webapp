@@ -113,7 +113,7 @@ def update_user(user_id: int, user: user_schemas.UserUpdate, db: Session = Depen
     "/users/{user_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete user",
-    description="Delete a user. Accessible by the user themselves or admins.",
+    description="Delete a user. Accessible by the  admins.",
 )
 def delete_user(user_id: int, db: Session = Depends(get_db), current_user: user_schemas.UserResponse = Depends(is_admin_user)):
     return user_crud.delete_user(db, user_id)

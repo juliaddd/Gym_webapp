@@ -37,7 +37,14 @@ export const createUser = async (userData) => {
 // Get list of users with pagination
 export const fetchUsers = async (skip = 0, limit = 100) => {
     try {
-        const response = await fetch(`${apiBaseUrl}/users/?skip=${skip}&limit=${limit}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${apiBaseUrl}/users/?skip=${skip}&limit=${limit}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            }
+        );
         return handleResponse(response);
     } catch (error) {
         console.error('Error fetching users:', error);
@@ -127,8 +134,13 @@ export const updateUser = async (userId, userData) => {
 // Delete user
 export const deleteUser = async (userId) => {
     try {
+        console.log("I AM IN.");
+        const token = localStorage.getItem('token');
         const response = await fetch(`${apiBaseUrl}/users/${userId}`, {
             method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
         });
         return handleResponse(response);
     } catch (error) {

@@ -8,45 +8,8 @@ import ProfileIcon from '@/app/components/profileicon';
 import StatisticsChart from '@/app/components/statisticschart';
 import Sidebar from '../components/Sidebar';
 import UserDetails from '../components/UserDetails';
-import { fetchUserById, fetchCategories, fetchStatsByCategory, fetchStatsByDayOfWeek } from '../../api'; 
+import { fetchUserById, fetchCategories, fetchStatsByCategory, fetchStatsByDayOfWeek, fetchUsers, deleteUser } from '../../api'; 
 
-
-
-const dummyUsers = [
-  {
-    id: 1,
-    name: 'admin001 V',
-    surname: 'Smith',
-    role: 'admin',
-    subtype: 'VIP',
-    email: 'admin1@example.com',
-    phone: '123-456-7890',
-    address: '123 Main St',
-    city: 'New York',
-  },
-  {
-    id: 2,
-    name: 'user002 S',
-    surname: 'Johnson',
-    role: 'user',
-    subtype: 'Standard',
-    email: 'user2@example.com',
-    phone: '234-567-8901',
-    address: '456 Oak Ave',
-    city: 'Los Angeles',
-  },
-  {
-    id: 3,
-    name: 'user003 P',
-    surname: 'Brown',
-    role: 'user',
-    subtype: 'Premium',
-    email: 'user3@example.com',
-    phone: '345-678-9012',
-    address: '789 Pine Rd',
-    city: 'Chicago',
-  },
-];
 
 
 const chartOptions = {
@@ -68,6 +31,8 @@ export default function AdminMainPage() {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [chartData, setChartData] = useState([]);
+  const [usersData, setUsersData] = useState([]);
+
   
   const [user, setUser] = useState({
     avatar: 'https://example.com/user-avatar.jpg',
@@ -103,27 +68,33 @@ export default function AdminMainPage() {
       const loadStatData = async () => {
         const allTimeFrom = '2000-01-01';
         const today = new Date().toISOString().split('T')[0];
-    
 
         const data = await fetchStatsByCategory(null, allTimeFrom, today);
         const allCategories = await fetchCategories() || [];
 
-      const transformedData = allCategories.map(category => {
+        const transformedData = allCategories.map(category => {
         const categoryData = data.find(item => item.category_id === category.category_id);
         return {
           category_name: category.name,
           total_training_time: categoryData ? categoryData.total_training_time : 0,
         };
-      });
+        });
 
-      setChartData(
-        transformedData.map(item => ({
+        setChartData(
+          transformedData.map(item => ({
           day_of_week: item.category_name, // подсовываем в поле, которое ожидает график
           total_training_time: item.total_training_time,
-        }))
-      );
+        })));
 
       };
+
+      const loadUsers = async () => {
+        const data = await fetchUsers();
+        setUsersData(data);
+      };
+
+
+      loadUsers();
       loadStatData();
       loadUser();
   
@@ -139,28 +110,34 @@ export default function AdminMainPage() {
       setFilterSubtypes([]);
     } else if (type === 'role') {
       setFilterRoles((prev) => (prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]));
-    } else if (type === 'subtype') {
+    } else if (type === 'subscription_type') {
       setFilterSubtypes((prev) => (prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]));
     }
   };
 
-  const filteredUsers = users.filter((user) => {
+  const filteredUsers = usersData.filter((user) => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase());
     const roleOk = filterRoles.length === 0 || filterRoles.includes(user.role);
-    const subtypeOk = filterSubtypes.length === 0 || filterSubtypes.includes(user.subtype);
+    const subtypeOk = filterSubtypes.length === 0 || filterSubtypes.includes(user.subscription_type);
     return matchesSearch && roleOk && subtypeOk;
   });
 
-  const selectedUser = users.find((u) => u.id === selectedUserId);
+  const selectedUser = usersData.find((u) => u.user_id === selectedUserId);
 
   // Обработчик сохранения изменений пользователя
   const handleSaveUser = (updatedUser) => {
-    setUsers((prev) => prev.map((user) => (user.id === updatedUser.id ? updatedUser : user)));
+    setUsers((prev) => prev.map((user) => (user.user_id === updatedUser.user_id ? updatedUser : user)));
   };
 
   // Обработчик удаления пользователя
-  const handleDeleteUser = (userId) => {
-    setUsers((prev) => prev.filter((user) => user.id !== userId));
+  const handleDeleteUser = async (userId) => {
+    try {
+      await deleteUser(userId);
+      setUsersData((prev) => prev.filter((user) => user.user_id !== userId));
+      setSelectedUserId(null);
+    } catch (error) {
+      alert('Error. Could not delete user');
+    }
   };
 
   return (
