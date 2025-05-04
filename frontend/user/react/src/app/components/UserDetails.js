@@ -83,7 +83,7 @@ export default function UserDetails({
       )}
 
       <div className="grid grid-cols-2 gap-4">
-        {['name', 'surname', 'email', 'phone', 'address', 'city'].map((field) => (
+        {['name', 'surname', 'email', 'phone_number', 'address'].map((field) => (
           <TextField
             key={field}
             name={field}

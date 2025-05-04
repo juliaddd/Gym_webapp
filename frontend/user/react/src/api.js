@@ -114,13 +114,16 @@ export const searchUsers = async (search = '', subscriptionType = '', role = '')
     }
 };
 
+
 // Update user information
 export const updateUser = async (userId, userData) => {
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${apiBaseUrl}/users/${userId}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify(userData),
         });

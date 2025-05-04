@@ -8,7 +8,7 @@ import ProfileIcon from '@/app/components/profileicon';
 import StatisticsChart from '@/app/components/statisticschart';
 import Sidebar from '../components/Sidebar';
 import UserDetails from '../components/UserDetails';
-import { fetchUserById, fetchCategories, fetchStatsByCategory, fetchStatsByDayOfWeek, fetchUsers, deleteUser } from '../../api'; 
+import { fetchUserById, fetchCategories, fetchStatsByCategory, updateUser , fetchUsers, deleteUser } from '../../api'; 
 
 
 
@@ -124,9 +124,28 @@ export default function AdminMainPage() {
 
   const selectedUser = usersData.find((u) => u.user_id === selectedUserId);
 
+  const isValidEmail = (email) => {
+    return /\S+@\S+\.\S+/.test(email);
+  };
   // Обработчик сохранения изменений пользователя
-  const handleSaveUser = (updatedUser) => {
-    setUsers((prev) => prev.map((user) => (user.user_id === updatedUser.user_id ? updatedUser : user)));
+  const handleSaveUser = async (updatedUser) => {
+    try {
+      if (!isValidEmail(updatedUser.email)) {
+        alert('Please enter valid email (ex: user@example.com)');
+        return;
+      }
+      const savedUser = await updateUser(updatedUser.user_id, updatedUser);
+  
+      setUsersData((prev) =>
+        prev.map((user) =>
+          user.user_id === savedUser.user_id ? savedUser : user
+        )
+      );
+  
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error. Could not update user data:', error);
+    }
   };
 
   // Обработчик удаления пользователя
