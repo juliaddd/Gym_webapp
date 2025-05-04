@@ -6,7 +6,7 @@ import ProfileIcon from '@/app/components/profileicon';  // Используем
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';  // Иконка для кнопки "Back"
 import { createTraining } from  '../../api'; 
 
-export default function StartTrainingPage({onBack }) {
+export default function StartTrainingPage() {
   const router = useRouter();
   const [manualTime, setManualTime] = useState('');
   const [entryMode, setEntryMode] = useState('manual');
@@ -52,7 +52,7 @@ export default function StartTrainingPage({onBack }) {
   };
 
   const handleCancel = () => {
-    router.push('/');  // Переход к главной странице при отмене
+    router.push('/timer');  // Переход к главной странице при отмене
   };
 
   const handleBackClick = () => {

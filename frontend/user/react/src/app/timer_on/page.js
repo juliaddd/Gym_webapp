@@ -5,13 +5,22 @@ import { Button } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Image from 'next/image';
 import timerIcon from '@/app/timericon.png';
+import { createTraining } from  '../../api'; 
 
-export default function StartTrainingPage({ category, onBack }) {
+export default function StartTrainingPage() {
   const router = useRouter();
   const [isRunning, setIsRunning] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [timeLabel, setTimeLabel] = useState('00:00');
   const [intervalId, setIntervalId] = useState(null);
+  const [category, setCategory] = useState(null);
+
+  useEffect(() => {
+    const savedCategory = localStorage.getItem('selectedCategory');
+    if (savedCategory) {
+      setCategory(JSON.parse(savedCategory));
+    }
+  }, []);
 
   // Format time to MM:SS
   const formatTime = (time) => {
@@ -46,9 +55,33 @@ export default function StartTrainingPage({ category, onBack }) {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () =>{
     alert(`Recorded time: ${timeElapsed} seconds (${timeLabel})`);
-    router.push('/');
+    if ( timeElapsed === 0) {
+      alert('Please start a timer');
+      return;
+    }
+    const timeInMinutes = Math.round(timeElapsed / 60);
+    try {
+      const userId = localStorage.getItem('user_id');
+      const categoryId = category.id;
+      const date = new Date().toISOString().split('T')[0];
+  
+      const trainingData = {
+        user_id: userId,
+        category_id: categoryId,
+        date: date,
+        training_duration: parseInt(timeInMinutes),
+      };
+  
+      await createTraining(trainingData);
+  
+      alert(`Training recorded: ${timeInMinutes} min`);
+      router.push('/');
+    } catch (error) {
+      console.error('Error. Could not create training:', error);
+      alert('Error. Could not save trainig.');
+    }
   };
 
   const handleBackClick = () => {

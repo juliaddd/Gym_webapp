@@ -53,9 +53,13 @@ export default function ProfilePage() {
     }));
   };
 
-  const handleSaveChanges = (updatedFormData) => {
+  const handleSaveChanges = async (updatedFormData) => {
+    if (updatedFormData.newPassword !== updatedFormData.repeatPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+    // Send data to API here
     console.log('Form saved with data:', updatedFormData);
-    // Here you would typically send data to an API
     alert('Changes saved successfully!');
   };
 

@@ -23,7 +23,7 @@ export default function StartTrainingPage() {
   };
 
   const handleBackClick = () => {
-    router.back();
+    router.push('/');
   };
 
   const handleStartClick = () => {
