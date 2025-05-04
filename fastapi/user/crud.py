@@ -38,6 +38,10 @@ def validate_password_complexity(v: str) -> str:
         raise ValueError("Password must contain at least one digit")
     return v
 
+def validate_phone_number_format(phone: str) -> str:
+    if not re.fullmatch(r"\+\d{1,14}$", phone):
+        raise ValueError("Phone number must start with '+' followed by up to 14 digits (max 15 characters total)")
+    return phone
 
 def create_user(db: Session, user: UserCreate):
     db_user = db.query(UserDB).filter(UserDB.email == user.email).first()
@@ -46,6 +50,7 @@ def create_user(db: Session, user: UserCreate):
 
     try:
         validate_password_complexity(user.password)
+        validate_phone_number_format(user.phone_number)
         hashed_password = hash_password(user.password)
         db_user = UserDB(
             name=user.name,
@@ -121,6 +126,9 @@ def update_user( db: Session, user_id: int, user: UserUpdate):
     if "password" in update_data:
         validate_password_complexity(update_data["password"])
         update_data["password"] = hash_password(update_data["password"])
+
+    if "phone_number" in update_data:
+        validate_phone_number_format(update_data["phone_number"])
 
     for key, value in update_data.items():
         setattr(db_user, key, value)

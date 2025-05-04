@@ -119,6 +119,8 @@ export const searchUsers = async (search = '', subscriptionType = '', role = '')
 export const updateUser = async (userId, userData) => {
     try {
         const token = localStorage.getItem('token');
+        console.log('TOKEN:', token);
+
         const response = await fetch(`${apiBaseUrl}/users/${userId}`, {
             method: 'PATCH',
             headers: {

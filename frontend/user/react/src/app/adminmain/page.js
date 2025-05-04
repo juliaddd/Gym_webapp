@@ -124,6 +124,15 @@ export default function AdminMainPage() {
 
   const selectedUser = usersData.find((u) => u.user_id === selectedUserId);
 
+  function validatePhoneNumber(phone) {
+    const phoneRegex = /^\+\d{1,14}$/;
+  
+    if (!phoneRegex.test(phone)) {
+      return "Phone number must start with '+' and contain up to 15 digits total.";
+    }
+  
+    return null; // null означает, что номер валиден
+  }
   const isValidEmail = (email) => {
     return /\S+@\S+\.\S+/.test(email);
   };
@@ -132,6 +141,11 @@ export default function AdminMainPage() {
     try {
       if (!isValidEmail(updatedUser.email)) {
         alert('Please enter valid email (ex: user@example.com)');
+        return;
+      }
+      const phoneError = validatePhoneNumber(updatedUser.phone_number);
+      if (phoneError) {
+        alert(phoneError);
         return;
       }
       const savedUser = await updateUser(updatedUser.user_id, updatedUser);

@@ -80,6 +80,7 @@ export default function ProfileForm({ formData, onChange, onSaveChanges }) {
         value={editedData.newPassword}
         onChange={handleFieldChange}
         required={false}
+        readOnly={false}
       />
       <InputField
         label="Repeat password"
@@ -88,6 +89,7 @@ export default function ProfileForm({ formData, onChange, onSaveChanges }) {
         value={editedData.repeatPassword}
         onChange={handleFieldChange}
         required={false}
+        readOnly={false}
       />
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
