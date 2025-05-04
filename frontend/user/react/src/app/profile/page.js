@@ -40,7 +40,7 @@ export default function ProfilePage() {
   }
 
   function validatePhoneNumber(phone) {
-    const phoneRegex = /^\+\d{1,14}$/;
+    const phoneRegex = /^\+(\d{1,4})\s?(\d{1,12})(\s?\d{1,2})?$/;
   
     if (!phoneRegex.test(phone)) {
       return "Phone number must start with '+' and contain up to 15 digits total.";

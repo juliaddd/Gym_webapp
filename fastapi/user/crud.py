@@ -39,7 +39,7 @@ def validate_password_complexity(v: str) -> str:
     return v
 
 def validate_phone_number_format(phone: str) -> str:
-    if not re.fullmatch(r"\+\d{1,14}$", phone):
+    if not re.fullmatch(r"\+(\d{1,4})\s?(\d{1,12})(\s?\d{1,2})?$", phone):
         raise ValueError("Phone number must start with '+' followed by up to 14 digits (max 15 characters total)")
     return phone
 

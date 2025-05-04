@@ -111,6 +111,21 @@ export default function UserDetails({
             ))}
           </Select>
         </FormControl>
+        <FormControl fullWidth variant="outlined" disabled={!isEditing}>
+          <InputLabel>Role</InputLabel>
+          <Select
+            name="role"
+            value={editableUser?.role || ''}
+            onChange={handleChange}
+            label={editableUser?.role}
+          >
+            {['user', 'admin'].map((type) => (
+              <MenuItem key={type} value={type}>
+                {type}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </div>
     </div>
   );
