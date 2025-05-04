@@ -188,7 +188,7 @@ export const fetchStatsByCategory = async (userId, dateFrom, dateTo) => {
             date_from: dateFrom,
             date_to: dateTo,
         });
-        if (userId) params.append('user_id', userId);
+        if (userId !== undefined && userId !== null) params.append('user_id', userId.toString());
         const response = await fetch(`${apiBaseUrl}/trainings/stats/by-category/?${params.toString()}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,

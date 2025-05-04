@@ -47,7 +47,7 @@ const handleLoginSubmit = async (e) => {
 
             const userData = await fetchUserById(result.user_id);
             if (userData.role == "admin")
-              router.push('/');
+              router.push('/adminmain');
             else
               router.push('/');
             // Перенаправляем на главную страницу

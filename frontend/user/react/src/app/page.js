@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect  } from 'react';
 import { useRouter } from 'next/navigation';
 import ProfileIcon from './components/profileicon';
 import StatisticsChart from '@/app/components/statisticschart';
@@ -18,37 +18,40 @@ export default function UserMainPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Loading user data during mount
+  // Loading user data during mountiong
+
   useEffect(() => {
-    const fetchUserData = async () => {
+    let isMounted = true;
+
+    const loadUser = async () => {
       try {
-        const userId = localStorage.getItem('user_id'); // Getting user_id from localStorage
-        if (!userId) {
-          throw new Error('User ID not found in localStorage');
+        const userId = localStorage.getItem('user_id');
+        const token = localStorage.getItem('token');
+
+        if (!userId || !token) {
+          router.push('/login');
+          return;
         }
 
-        const token = localStorage.getItem('token'); // Getting token
-        if (!token) {
-          throw new Error('Token not found in localStorage');
-        }
-
-        const userData = await fetchUserById(userId); // Request user data from backend
-
+        const userData = await fetchUserById(userId);
         setUser({
-          avatar: userData.avatar || 'https://example.com/user-avatar.jpg', // if there is no profile picture
+          avatar: userData.avatar || 'https://example.com/user-avatar.jpg', // if there are no prof pic
           name: `${userData.name} ${userData.surname || ''}`.trim(),
         });
 
+        if (isMounted) setUser(userData);
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error('Failed to load user:', error);
         router.push('/login');
       }
     };
 
-    fetchUserData();
-  }, [router]);
+    loadUser();
 
-  // Define basic statistics data
+    return () => { isMounted = false; };
+  }, []);
+
+  // Define basic statistics data 
   useEffect(() => {
     const fetchStatisticsData = async () => {
       try {
@@ -57,29 +60,34 @@ export default function UserMainPage() {
           throw new Error('User ID not found in localStorage');
         }
 
-        // Define the date range (for example, the last 7 days)
-        const today = new Date();
-        const dayOfWeek = today.getDay(); // Sunday — 0, Monday — 1, ..., Saturday — 6
-        const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // if it's Sunday — move back 6 days
-        const monday = new Date(today);
-        monday.setDate(today.getDate() + diffToMonday);
-        monday.setHours(0, 0, 0, 0);
+        // Определяем понедельник текущей недели
+      const today = new Date();
+      const dayOfWeek = today.getDay(); // воскресенье — 0, понедельник — 1, ..., суббота — 6
+      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // если воскресенье — идем назад на 6 дней
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + diffToMonday);
+      monday.setHours(0, 0, 0, 0);
 
-        // Sunday of the current week — add 6 days from Monday
-        const sunday = new Date(monday);
-        sunday.setDate(monday.getDate() + 6);
-        sunday.setHours(23, 59, 59, 999);
+      // Воскресенье текущей недели — прибавим 6 дней от понедельника
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
 
-        // Convert to strings
-        const dateFrom = monday.toISOString().split('T')[0];
-        const dateTo = sunday.toISOString().split('T')[0];
-        const stats = await fetchStatsByDayOfWeek(userId, dateFrom, dateTo);
+      // Преобразуем в строки
+      const dateFrom = monday.toISOString().split('T')[0];
+      const dateTo = sunday.toISOString().split('T')[0];
+      const stats = await fetchStatsByDayOfWeek(userId, dateFrom, dateTo);
 
+        // Приводим данные к формату, который ожидает StatisticsChart
+        // const formattedStats = stats.map((stat) => ({
+        //   day: stat.day_of_week,
+        //   value: stat.total_training_time,
+        // }));
         setStatistics(stats);
         console.log('Formatted Stats for Chart:', stats);
       } catch (error) {
         console.error('Error fetching statistics:', error);
-        // If an error occurs, provide dummy data
+        // Если ошибка, можно показать заглушку
         setStatistics([
           { day: 'Monday', value: 0 },
           { day: 'Tuesday', value: 0 },
@@ -95,20 +103,22 @@ export default function UserMainPage() {
     fetchStatisticsData();
   }, []);
 
-  // Define basic categories
+  // Define basic categories 
+    // Загрузка категорий
   useEffect(() => {
     const fetchCategoriesData = async () => {
       try {
         const categoriesData = await fetchCategories();
+        // Приводим данные к формату, который ожидает CategoryGrid
         const formattedCategories = categoriesData.map((category) => ({
           id: category.category_id,
           title: category.name,
-          imageUrl: category.image || '/path-to-default-image.jpg',
+          imageUrl: category.image || '/path-to-default-image.jpg', // Если image не указан
         }));
         setCategories(formattedCategories);
       } catch (error) {
         console.error('Error fetching categories:', error);
-        // If error, display dummy categories
+        // Если ошибка, можно показать заглушку
         setCategories([
           { id: 1, title: 'Abs', imageUrl: '/path-to-cardio-image.jpg' },
           { id: 2, title: 'Stretching', imageUrl: '/path-to-stretching-image.jpg' },
@@ -129,15 +139,16 @@ export default function UserMainPage() {
   };
 
   // Handle category selection (redirect to training page)
-  const handleCategorySelect = (category) => {
-    console.log('Selected category:', category.title);
-    router.push('/timer');
-  };
+const handleCategorySelect = (category) => {
+  console.log('Selected category:', category.title);
+  router.push('/timer');
 
-  // Handle statistics click (redirect to statistics page)
-  const handleStatisticsClick = () => {
-    router.push('/statisticsuser');
-  };
+};
+
+// Handle statistics click (redirect to statistics page)
+const handleStatisticsClick = () => {
+  router.push('/statisticsuser'); // Use router.push instead
+};
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -149,15 +160,16 @@ export default function UserMainPage() {
       {/* Statistics Section */}
       <h1 className="text-2xl font-bold mb-4">Your Weekly Workout Statistics</h1>
       <div className="my-8">
-        <StatisticsChart data={statistics} />
-        {/* Clickable text to view full statistics */}
-        <button
-          onClick={handleStatisticsClick}
-          className="text-blue-500 hover:text-blue-700 underline" style={{ cursor: 'pointer' }}
-        >
-          See full statistics
-        </button>
+        <StatisticsChart data={statistics}/>
+        {/* Кликабельный текст для просмотра полной статистики */}
+      <button
+        onClick={handleStatisticsClick}
+        className="text-blue-500 hover:text-blue-700 underline" style={{ cursor: 'pointer' }}
+      >
+        See full statistics
+      </button>
       </div>
+
 
       {/* Categories Grid */}
       <div className="my-8">

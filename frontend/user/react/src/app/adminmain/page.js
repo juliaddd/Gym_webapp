@@ -1,13 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Bar } from 'react-chartjs-2';
 import { useRouter } from 'next/navigation';
+import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 import ProfileIcon from '@/app/components/profileicon';
 import StatisticsChart from '@/app/components/statisticschart';
 import Sidebar from '../components/Sidebar';
 import UserDetails from '../components/UserDetails';
+import { fetchUserById, fetchCategories, fetchStatsByCategory, fetchStatsByDayOfWeek } from '../../api'; 
+
+
 
 const dummyUsers = [
   {
@@ -45,25 +48,6 @@ const dummyUsers = [
   },
 ];
 
-// Заглушка для категорий
-const categories = [
-  { id: 1, title: 'Abs', imageUrl: '/path-to-cardio-image.jpg' },
-  { id: 2, title: 'Stretching', imageUrl: '/path-to-stretching-image.jpg' },
-  { id: 3, title: 'Back', imageUrl: '/path-to-back-image.jpg' },
-  { id: 4, title: 'Arms', imageUrl: '/path-to-arms-image.jpg' },
-  { id: 5, title: 'Legs', imageUrl: '/path-to-legs-image.jpg' },
-  { id: 6, title: 'Cardio', imageUrl: '/path-to-abs-image.jpg' },
-];
-
-// Заглушка для часов по категориям
-const hoursData = [
-  { category_id: 1, total_hours: 120 },
-  { category_id: 2, total_hours: 80 },
-  { category_id: 3, total_hours: 90 },
-  { category_id: 4, total_hours: 110 },
-  { category_id: 5, total_hours: 100 },
-  { category_id: 6, total_hours: 130 },
-];
 
 const chartOptions = {
   responsive: true,
@@ -73,6 +57,8 @@ const chartOptions = {
 };
 
 export default function AdminMainPage() {
+
+  const router = useRouter();
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [showFilter, setShowFilter] = useState(false);
   const [filterRoles, setFilterRoles] = useState([]);
@@ -82,23 +68,68 @@ export default function AdminMainPage() {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [chartData, setChartData] = useState([]);
-  const [users, setUsers] = useState([]); // Состояние для списка пользователей
-  const router = useRouter();
+  
+  const [user, setUser] = useState({
+    avatar: 'https://example.com/user-avatar.jpg',
+    name: 'Loading...',
+  });
 
   useEffect(() => {
-    // Инициализация пользователей
-    setUsers(dummyUsers);
-
-    // Формирование данных для графика
-    const formattedChartData = categories.map((category) => {
-      const hoursEntry = hoursData.find((h) => h.category_id === category.id);
-      return {
-        day_of_week: category.title,
-        total_training_time: hoursEntry ? hoursEntry.total_hours : 0,
+      let isMounted = true;
+  
+      const loadUser = async () => {
+        try {
+          const userId = localStorage.getItem('user_id');
+          const token = localStorage.getItem('token');
+  
+          if (!userId || !token) {
+            router.push('/login');
+            return;
+          }
+  
+          const userData = await fetchUserById(userId);
+          setUser({
+            avatar: userData.avatar || 'https://example.com/user-avatar.jpg',
+            name: `${userData.name} ${userData.surname || ''}`.trim(),
+          });
+  
+          if (isMounted) setUser(userData);
+        } catch (error) {
+          console.error('Failed to load user:', error);
+          router.push('/login');
+        }
       };
-    });
-    setChartData(formattedChartData);
-  }, []);
+
+      const loadStatData = async () => {
+        const allTimeFrom = '2000-01-01';
+        const today = new Date().toISOString().split('T')[0];
+    
+
+        const data = await fetchStatsByCategory(null, allTimeFrom, today);
+        const allCategories = await fetchCategories() || [];
+
+      const transformedData = allCategories.map(category => {
+        const categoryData = data.find(item => item.category_id === category.category_id);
+        return {
+          category_name: category.name,
+          total_training_time: categoryData ? categoryData.total_training_time : 0,
+        };
+      });
+
+      setChartData(
+        transformedData.map(item => ({
+          day_of_week: item.category_name, // подсовываем в поле, которое ожидает график
+          total_training_time: item.total_training_time,
+        }))
+      );
+
+      };
+      loadStatData();
+      loadUser();
+  
+      return () => { isMounted = false; };
+    }, []);
+
 
   const toggleShowFilter = () => setShowFilter(!showFilter);
 
