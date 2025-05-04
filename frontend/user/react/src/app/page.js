@@ -140,7 +140,7 @@ export default function UserMainPage() {
 
   // Handle category selection (redirect to training page)
 const handleCategorySelect = (category) => {
-  console.log('Selected category:', category.title);
+  localStorage.setItem('selectedCategory', JSON.stringify(category));
   router.push('/timer');
 
 };

@@ -1,15 +1,22 @@
 'use client';
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProfileIcon from '@/app/components/profileicon';
 import timerIcon from '@/app/timericon.png';
 import { Button, Typography } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
-export default function StartTrainingPage({ category }) {
+export default function StartTrainingPage() {
   const router = useRouter();
-
+  const [category, setCategory] = useState(null);
+  
+  useEffect(() => {
+    const savedCategory = localStorage.getItem('selectedCategory');
+    if (savedCategory) {
+      setCategory(JSON.parse(savedCategory));
+    }
+  }, []);
 
   const handleManualEntry = () => {
     router.push('/timer_manual');
@@ -62,6 +69,7 @@ export default function StartTrainingPage({ category }) {
         </Button>
         <Button
           variant="outlined"
+          category={category}
           onClick={handleManualEntry}
         >
           Enter manually

@@ -181,10 +181,12 @@ export const fetchCategoryById = async (categoryId) => {
 // Create new training
 export const createTraining = async (trainingData) => {
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${apiBaseUrl}/trainings/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify(trainingData),
         });

@@ -60,11 +60,7 @@ const handleLoginSubmit = async (e) => {
         }
 };
   
-  const handleSignUpRedirect = () => {
-    router.push('/registration');// Redirect to registration page
-  };
 
-  
 
 return (
     <div
@@ -138,14 +134,6 @@ return (
               >
                 Forgot password?
               </span>
-
-              <span
-                onClick={handleSignUpRedirect}
-                className="cursor-pointer text-blue-600 hover:underline"
-              >
-                Sign up
-              </span>
-
             </div>
 
             {/* Submit Button */}           
