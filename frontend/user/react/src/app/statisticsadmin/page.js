@@ -1,14 +1,67 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import ProfileIcon from '@/app/components/profileicon';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import { BasicBarChart, StackedCategoryChart, SubscriptionLineChart } from '@/app/components/ChartComponents';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  LineChart, Line
-} from 'recharts';
+import ProfileIcon from '@/app/components/profileicon';
+
+// Helper functions for date handling
+const getMonthRange = (offset = 0) => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  
+  // Calculate target month (going back by offset)
+  let targetMonth = currentMonth - offset;
+  let targetYear = currentYear;
+  
+  // Adjust for previous years
+  while (targetMonth < 0) {
+    targetMonth += 12;
+    targetYear -= 1;
+  }
+  
+  // First day of month
+  const fromDate = new Date(targetYear, targetMonth, 1);
+  
+  // Last day of month
+  const toDate = new Date(targetYear, targetMonth + 1, 0);
+  
+  return {
+    from: fromDate.toISOString().split('T')[0],
+    to: toDate.toISOString().split('T')[0],
+    month: fromDate.toLocaleString('default', { month: 'long' }),
+    year: targetYear
+  };
+};
+
+const getWeekRange = (offset = 0) => {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0 is Sunday, 6 is Saturday
+  const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  
+  // Find the most recent Monday
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - daysFromMonday - (7 * offset));
+  
+  // Find the Sunday that ends this week
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  
+  return {
+    from: monday.toISOString().split('T')[0],
+    to: sunday.toISOString().split('T')[0]
+  };
+};
+
+const getWeekLabel = (offset) => {
+  const { from, to } = getWeekRange(offset);
+  return `${from} to ${to}`;
+};
+
+const getMonthName = (offset) => {
+  return getMonthRange(offset);
+};
 
 // Mock API functions based on the entity model
 const mockFetchStatsByCategory = async (from, to) => {
@@ -77,251 +130,63 @@ const mockFetchCurrentSubscriptionCounts = async () => {
   ];
 };
 
-// Component for Category Chart
-const CategoryChart = ({ data }) => {
-  if (!data || data.length === 0) return <div>No data available</div>;
-  
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="category_name" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Bar dataKey="total_time" fill="#8884d8" name="Training Hours" />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-};
-
-// Component for Stacked Category Chart by Subscription
-const StackedCategoryChart = ({ data }) => {
-  if (!data || data.length === 0) return <div>No data available</div>;
-  
-  // Transform data for stacked bar chart
-  const categories = [...new Set(data.map(item => item.category_name))];
-  const subscriptionTypes = [...new Set(data.map(item => item.subscription_type))];
-  
-  const transformedData = categories.map(category => {
-    const categoryData = { category_name: category };
-    subscriptionTypes.forEach(subType => {
-      const item = data.find(d => d.category_name === category && d.subscription_type === subType);
-      categoryData[subType] = item ? item.total_training_time : 0;
-    });
-    return categoryData;
-  });
-  
-  // Colors for different subscription types
-  const colors = {
-    'Basic': '#8884d8',    // blue
-    'Premium': '#82ca9d',  // green
-    'VIP': '#ffc658'       // orange
-  };
-  
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={transformedData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="category_name" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        {subscriptionTypes.map((subType, index) => (
-          <Bar 
-            key={subType} 
-            dataKey={subType} 
-            stackId="a" 
-            fill={colors[subType] || `#${Math.floor(Math.random()*16777215).toString(16)}`}
-            name={subType}
-          />
-        ))}
-      </BarChart>
-    </ResponsiveContainer>
-  );
-};
-
-// Component for Subscription Changes Line Chart
-const SubscriptionLineChart = ({ data }) => {
-  if (!data || data.length === 0) return <div>No data available</div>;
-  
-  // Get unique years and subscription types
-  const years = [...new Set(data.map(item => item.year))];
-  const subscriptionTypes = [...new Set(data.map(item => item.subscription_type))];
-  
-  // Colors for different subscription types
-  const colors = {
-    'Basic': '#8884d8',    // blue
-    'Premium': '#82ca9d',  // green
-    'VIP': '#ffc658'       // orange
-  };
-  
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis 
-          dataKey="year" 
-          type="category"
-          allowDuplicatedCategory={false}
-        />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        {subscriptionTypes.map((subType, index) => {
-          const subData = data.filter(d => d.subscription_type === subType);
-          return (
-            <Line
-              key={subType}
-              type="monotone"
-              dataKey="user_count"
-              data={subData}
-              name={subType}
-              stroke={colors[subType] || `#${Math.floor(Math.random()*16777215).toString(16)}`}
-              activeDot={{ r: 8 }}
-            />
-          );
-        })}
-      </LineChart>
-    </ResponsiveContainer>
-  );
-};
-
-// Component for Weekly Training Chart
-const WeeklyTrainingChart = ({ data }) => {
-  if (!data || data.length === 0) return <div>No data available</div>;
-  
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="day_of_week" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Bar dataKey="total_training_time" fill="#8884d8" name="Training Hours" />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-};
-
-export default function AdminStatisticsPage() {
-  // Separate offset states for each chart
-  const [categoryMonthOffset, setCategoryMonthOffset] = useState(0);
-  const [subscriptionMonthOffset, setSubscriptionMonthOffset] = useState(0);
-  const [weekOffset, setWeekOffset] = useState(0);
-  
-  // States for data
-  const [categoryStats, setCategoryStats] = useState([]);
-  const [categorySubscriptionStats, setCategorySubscriptionStats] = useState([]);
-  const [subscriptionChanges, setSubscriptionChanges] = useState([]);
-  const [weeklyStats, setWeeklyStats] = useState([]);
-  const [totalMonthlyTimeCategory, setTotalMonthlyTimeCategory] = useState(0);
-  const [totalMonthlyTimeSubscription, setTotalMonthlyTimeSubscription] = useState(0);
-  const [totalWeeklyTime, setTotalWeeklyTime] = useState(0);
-  const [currentSubscriptionCounts, setCurrentSubscriptionCounts] = useState([]);
-  
-  // Loading states for each chart
-  const [isCategoryLoading, setIsCategoryLoading] = useState(true);
-  const [isSubscriptionLoading, setIsSubscriptionLoading] = useState(true);
-  const [isSubscriptionYearlyLoading, setIsSubscriptionYearlyLoading] = useState(true);
-  const [isWeeklyLoading, setIsWeeklyLoading] = useState(true);
-
+// Main Dashboard Component
+export default function StatsDashboard() {
   const router = useRouter();
-
-  const getMonthRange = (offset) => {
-    const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth() - offset, 1);
-    firstDayOfMonth.setHours(0, 0, 0, 0);
   
-    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() - offset + 1, 0);
-    lastDayOfMonth.setHours(23, 59, 59, 999);
+  // State for category statistics
+  const [categoryStats, setCategoryStats] = useState([]);
+  const [categoryMonthOffset, setCategoryMonthOffset] = useState(0);
+  const [isCategoryLoading, setIsCategoryLoading] = useState(true);
+  const [totalMonthlyTimeCategory, setTotalMonthlyTimeCategory] = useState(null);
   
-    return {
-      from: firstDayOfMonth.toISOString().split('T')[0],
-      to: lastDayOfMonth.toISOString().split('T')[0],
-    };
-  };
-
-  const getWeekRange = (offset) => {
-    const now = new Date();
-    // Get current day of week (0 = Sunday, 1 = Monday, etc.)
-    const currentDayOfWeek = now.getDay();
-    const daysSinceMonday = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
-    
-    // Find monday of current week, then adjust by offset
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - daysSinceMonday - (offset * 7));
-    monday.setHours(0, 0, 0, 0);
-    
-    // Find sunday of current week
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23, 59, 59, 999);
-    
-    return {
-      from: monday.toISOString().split('T')[0],
-      to: sunday.toISOString().split('T')[0],
-    };
-  };
-
-  const getMonthName = (offset) => {
-    const now = new Date();
-    const monthDate = new Date(now.getFullYear(), now.getMonth() - offset, 1);
-    
-    const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ];
-
-    const monthName = monthNames[monthDate.getMonth()];
-    const year = monthDate.getFullYear();
+  // State for category by subscription statistics
+  const [categorySubscriptionStats, setCategorySubscriptionStats] = useState([]);
+  const [subscriptionMonthOffset, setSubscriptionMonthOffset] = useState(0);
+  const [isSubscriptionLoading, setIsSubscriptionLoading] = useState(true);
+  const [totalMonthlyTimeSubscription, setTotalMonthlyTimeSubscription] = useState(null);
   
-    return {
-      month: monthName,
-      year: year,
-    };
-  };
-
-  const getWeekLabel = (offset) => {
-    const { from, to } = getWeekRange(offset);
-    const fromDate = new Date(from);
-    const toDate = new Date(to);
-    
-    const formatDate = (date) => {
-      return `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })}`;
-    };
-    
-    return `${formatDate(fromDate)} - ${formatDate(toDate)}`;
-  };
-
+  // State for yearly subscription statistics
+  const [subscriptionChanges, setSubscriptionChanges] = useState([]);
+  const [currentSubscriptionCounts, setCurrentSubscriptionCounts] = useState([]);
+  const [isSubscriptionYearlyLoading, setIsSubscriptionYearlyLoading] = useState(true);
+  
+  // State for weekly statistics
+  const [weeklyStats, setWeeklyStats] = useState([]);
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [isWeeklyLoading, setIsWeeklyLoading] = useState(true);
+  const [totalWeeklyTime, setTotalWeeklyTime] = useState(0);
+  
+  // Format current subscription summary
   const getCurrentSubscriptionSummary = () => {
-    if (!currentSubscriptionCounts || currentSubscriptionCounts.length === 0) return 'No data available';
-    return currentSubscriptionCounts.map(item => `${item.subscription_type}: ${item.user_count}`).join(', ');
+    if (!currentSubscriptionCounts || currentSubscriptionCounts.length === 0) {
+      return "No data available";
+    }
+    
+    return currentSubscriptionCounts.map(item => 
+      `${item.subscription_type}: ${item.user_count}`
+    ).join(', ');
   };
-
-  // Fetch category data when categoryMonthOffset changes
+  
+  // Fetch category stats when categoryMonthOffset changes
   useEffect(() => {
     const fetchCategoryData = async () => {
       setIsCategoryLoading(true);
       try {
         const { from, to } = getMonthRange(categoryMonthOffset);
         console.log(`Fetching category stats from ${from} to ${to}`);
-
+        
         // Fetch category stats
-        const categoryData = await mockFetchStatsByCategory(from, to);
-        setCategoryStats(categoryData.map(item => ({
-          category_name: item.category_name,
-          total_time: item.total_training_time,
-        })));
-
-        // Fetch total training time
-        const totalTimeData = await mockFetchTotalTrainingTime(from, to);
-        setTotalMonthlyTimeCategory(totalTimeData);
+        const catStats = await mockFetchStatsByCategory(from, to);
+        setCategoryStats(catStats);
+        
+        // Fetch total monthly time
+        const totalTime = await mockFetchTotalTrainingTime(from, to);
+        setTotalMonthlyTimeCategory(totalTime);
       } catch (err) {
         console.error('Error loading category stats:', err);
         setCategoryStats([]);
-        setTotalMonthlyTimeCategory(0);
+        setTotalMonthlyTimeCategory(null);
       } finally {
         setIsCategoryLoading(false);
       }
@@ -329,41 +194,41 @@ export default function AdminStatisticsPage() {
     fetchCategoryData();
   }, [categoryMonthOffset]);
   
-  // Fetch subscription data when subscriptionMonthOffset changes
+  // Fetch subscription stats when subscriptionMonthOffset changes
   useEffect(() => {
     const fetchSubscriptionData = async () => {
       setIsSubscriptionLoading(true);
       try {
         const { from, to } = getMonthRange(subscriptionMonthOffset);
         console.log(`Fetching subscription stats from ${from} to ${to}`);
-
+        
         // Fetch category by subscription stats
-        const categorySubData = await mockFetchStatsByCategoryAndSubscription(from, to);
-        setCategorySubscriptionStats(categorySubData);
-
-        // Fetch total training time
-        const totalTimeData = await mockFetchTotalTrainingTime(from, to);
-        setTotalMonthlyTimeSubscription(totalTimeData);
+        const subStats = await mockFetchStatsByCategoryAndSubscription(from, to);
+        setCategorySubscriptionStats(subStats);
+        
+        // Fetch total monthly time
+        const totalTime = await mockFetchTotalTrainingTime(from, to);
+        setTotalMonthlyTimeSubscription(totalTime);
       } catch (err) {
         console.error('Error loading subscription stats:', err);
         setCategorySubscriptionStats([]);
-        setTotalMonthlyTimeSubscription(0);
+        setTotalMonthlyTimeSubscription(null);
       } finally {
         setIsSubscriptionLoading(false);
       }
     };
     fetchSubscriptionData();
   }, [subscriptionMonthOffset]);
-
-  // Fetch yearly subscription data (once)
+  
+  // Fetch yearly subscription data on component mount
   useEffect(() => {
     const fetchYearlyData = async () => {
       setIsSubscriptionYearlyLoading(true);
       try {
         // Fetch subscription changes over years
-        const subChanges = await mockFetchSubscriptionChanges();
-        setSubscriptionChanges(subChanges);
-
+        const changes = await mockFetchSubscriptionChanges();
+        setSubscriptionChanges(changes);
+        
         // Fetch current subscription counts
         const subCounts = await mockFetchCurrentSubscriptionCounts();
         setCurrentSubscriptionCounts(subCounts);
@@ -439,123 +304,51 @@ export default function AdminStatisticsPage() {
       </div>
 
       {/* Category Chart */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">Total Hours by Category This Month</h2>
-        {isCategoryLoading ? (
-          <div className="flex justify-center items-center h-64">Loading chart data...</div>
-        ) : (
-          <>
-            <CategoryChart data={categoryStats} />
-            <div className="text-center mt-4">
-              <p className="text-lg font-semibold">
-                Total Hours for {categoryMonthLabel.month} {categoryMonthLabel.year}: {getCategoryTotalTime()} hours
-              </p>
-            </div>
-            
-            {/* Category Chart Navigation - MODIFIED */}
-            <div className="flex justify-between items-center mt-4">
-              <button 
-                className="p-2 rounded-full hover:bg-gray-100"
-                onClick={() => setCategoryMonthOffset(categoryMonthOffset + 1)}
-              >
-                <ArrowBackIosIcon style={{ color: 'black' }} />
-              </button>
-              <button 
-                className="p-2 rounded-full hover:bg-gray-100"
-                onClick={() => setCategoryMonthOffset(categoryMonthOffset - 1)}
-                disabled={categoryMonthOffset === 0}
-              >
-                <ArrowForwardIosIcon style={{ color: 'black' }} />
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+      <BasicBarChart
+        title="Total Hours by Category This Month"
+        data={categoryStats}
+        dataKey="total_training_time"
+        xAxisKey="category_name"
+        period={`${categoryMonthLabel.month} ${categoryMonthLabel.year}`}
+        totalValue={getCategoryTotalTime()}
+        isLoading={isCategoryLoading}
+        offset={categoryMonthOffset}
+        setOffset={setCategoryMonthOffset}
+        disableNext={categoryMonthOffset === 0}
+      />
 
       {/* Category by Subscription Chart */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">Total Hours by Category and Subscription Type</h2>
-        {isSubscriptionLoading ? (
-          <div className="flex justify-center items-center h-64">Loading chart data...</div>
-        ) : (
-          <>
-            <StackedCategoryChart data={categorySubscriptionStats} />
-            <div className="text-center mt-4">
-              <p className="text-lg font-semibold">
-                Total Hours for {subscriptionMonthLabel.month} {subscriptionMonthLabel.year}: {getSubscriptionTotalTime()} hours
-              </p>
-            </div>
-            
-            {/* Subscription Chart Navigation - MODIFIED */}
-            <div className="flex justify-between items-center mt-4">
-              <button 
-                className="p-2 rounded-full hover:bg-gray-100"
-                onClick={() => setSubscriptionMonthOffset(subscriptionMonthOffset + 1)}
-              >
-                <ArrowBackIosIcon style={{ color: 'black' }} />
-              </button>
-              <button 
-                className="p-2 rounded-full hover:bg-gray-100"
-                onClick={() => setSubscriptionMonthOffset(subscriptionMonthOffset - 1)}
-                disabled={subscriptionMonthOffset === 0}
-              >
-                <ArrowForwardIosIcon style={{ color: 'black' }} />
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+      <StackedCategoryChart
+        title="Total Hours by Category and Subscription Type"
+        data={categorySubscriptionStats}
+        period={`${subscriptionMonthLabel.month} ${subscriptionMonthLabel.year}`}
+        totalValue={getSubscriptionTotalTime()}
+        isLoading={isSubscriptionLoading}
+        offset={subscriptionMonthOffset}
+        setOffset={setSubscriptionMonthOffset}
+      />
 
       {/* Subscription Changes Chart */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">Subscription Type Changes Over Years</h2>
-        {isSubscriptionYearlyLoading ? (
-          <div className="flex justify-center items-center h-64">Loading chart data...</div>
-        ) : (
-          <>
-            <SubscriptionLineChart data={subscriptionChanges} />
-            <div className="text-center mt-4">
-              <p className="text-lg font-semibold">
-                Current Subscription Counts: {getCurrentSubscriptionSummary()}
-              </p>
-            </div>
-          </>
-        )}
-      </div>
+      <SubscriptionLineChart
+        title="Subscription Type Changes Over Years"
+        data={subscriptionChanges}
+        summary={`Current Subscription Counts: ${getCurrentSubscriptionSummary()}`}
+        isLoading={isSubscriptionYearlyLoading}
+      />
 
       {/* Weekly Stats Chart */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">Gym Attendance by Day of Week</h2>
-        {isWeeklyLoading ? (
-          <div className="flex justify-center items-center h-64">Loading chart data...</div>
-        ) : (
-          <>
-            <WeeklyTrainingChart data={weeklyStats} />
-            <div className="text-center mt-4">
-              <p className="text-lg font-semibold">
-                Week of {weekLabel}: {totalWeeklyTime} hours
-              </p>
-            </div>
-            
-            {/* Weekly Chart Navigation - MODIFIED */}
-            <div className="flex justify-between items-center mt-4">
-              <button 
-                className="p-2 rounded-full hover:bg-gray-100"
-                onClick={() => setWeekOffset(weekOffset + 1)}
-              >
-                <ArrowBackIosIcon style={{ color: 'black' }} />
-              </button>
-              <button 
-                className="p-2 rounded-full hover:bg-gray-100"
-                onClick={() => setWeekOffset(weekOffset - 1)}
-                disabled={weekOffset === 0}
-              >
-                <ArrowForwardIosIcon style={{ color: 'black' }} />
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+      <BasicBarChart
+        title="Gym Attendance by Day of Week"
+        data={weeklyStats}
+        dataKey="total_training_time"
+        xAxisKey="day_of_week"
+        period={`Week of ${weekLabel}`}
+        totalValue={totalWeeklyTime}
+        isLoading={isWeeklyLoading}
+        offset={weekOffset}
+        setOffset={setWeekOffset}
+        disableNext={weekOffset === 0}
+      />
     </div>
   );
 }
