@@ -6,7 +6,7 @@ import Button from '@mui/material/Button';
 import { useRouter } from 'next/navigation';
 import { loginUser, fetchUserById } from '../../api';
 
-export default function LoginPage({ onLogin, onForgotPasswordRedirect }) {
+export default function LoginPage({ onLogin }) {
   const router = useRouter(); // Next.js useRouter hook for navigation
 
   const [loginData, setLoginData] = useState({
@@ -125,16 +125,6 @@ return (
 
             {/* Error Message */}
             {error && <p className="text-red-500 mb-4">{error}</p>}
-
-            {/* Forgot password and Sign-Up links */}
-            <div className="forgot-signup-links flex justify-between text-sm">
-              <span
-                onClick={onForgotPasswordRedirect}
-                className="cursor-pointer text-blue-600 hover:underline"
-              >
-                Forgot password?
-              </span>
-            </div>
 
             {/* Submit Button */}           
             <Button

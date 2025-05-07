@@ -4,7 +4,15 @@ import { useRouter } from 'next/navigation';
 import { BasicBarChart, StackedCategoryChart, SubscriptionLineChart } from '@/app/components/ChartComponents';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ProfileIcon from '@/app/components/profileicon';
-
+import {
+  fetchStatsByCategory,
+  fetchTotalTrainingTime,
+  fetchStatsByCategoryAndSubscription,
+  fetchUserStatsBySubscription,
+  fetchStatsByCategoryAndAllSubscriptions,
+  fetchStatsByDayOfWeek,
+  fetchCategories
+} from '../../api'; // Import the actual API functions
 // Helper functions for date handling
 const getMonthRange = (offset = 0) => {
   const now = new Date();
@@ -62,28 +70,29 @@ const getWeekLabel = (offset) => {
 const getMonthName = (offset) => {
   return getMonthRange(offset);
 };
-
-// Mock API functions based on the entity model
-const mockFetchStatsByCategory = async (from, to) => {
-  return [
-    { category_name: 'Cardio', total_training_time: 300 },
-    { category_name: 'Strength', total_training_time: 200 },
-    { category_name: 'Flexibility', total_training_time: 150 },
-  ];
-};
-
-const mockFetchStatsByCategoryAndSubscription = async (from, to) => {
-  return [
-    { category_name: 'Cardio', subscription_type: 'Basic', total_training_time: 100 },
-    { category_name: 'Cardio', subscription_type: 'Premium', total_training_time: 200 },
-    { category_name: 'Cardio', subscription_type: 'VIP', total_training_time: 150 },
-    { category_name: 'Strength', subscription_type: 'Basic', total_training_time: 80 },
-    { category_name: 'Strength', subscription_type: 'Premium', total_training_time: 120 },
-    { category_name: 'Strength', subscription_type: 'VIP', total_training_time: 90 },
-    { category_name: 'Flexibility', subscription_type: 'Basic', total_training_time: 50 },
-    { category_name: 'Flexibility', subscription_type: 'Premium', total_training_time: 100 },
-    { category_name: 'Flexibility', subscription_type: 'VIP', total_training_time: 70 },
-  ];
+const formatWeeklyData = (data) => {
+  // Ensure we have entries for all days of the week
+  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const formattedData = [];
+  
+  // Create a map for quick lookups
+  const dataMap = {};
+  if (Array.isArray(data)) {
+    data.forEach(item => {
+      dataMap[item.day_of_week] = item.total_training_time;
+    });
+  }
+  
+  // Create an entry for each day of the week, using 0 if no data
+  daysOfWeek.forEach(day => {
+    formattedData.push({
+      day_of_week: day,
+      total_training_time: dataMap[day] || 0
+    });
+  });
+  
+  console.log('Formatted weekly data:', formattedData);
+  return formattedData;
 };
 
 const mockFetchSubscriptionChanges = async () => {
@@ -168,57 +177,117 @@ export default function StatsDashboard() {
     ).join(', ');
   };
   
-  // Fetch category stats when categoryMonthOffset changes
-  useEffect(() => {
-    const fetchCategoryData = async () => {
-      setIsCategoryLoading(true);
-      try {
-        const { from, to } = getMonthRange(categoryMonthOffset);
-        console.log(`Fetching category stats from ${from} to ${to}`);
+   // Fetch category stats when categoryMonthOffset changes
+useEffect(() => {
+  const fetchCategoryData = async () => {
+    setIsCategoryLoading(true);
+    try {
+      const { from, to } = getMonthRange(categoryMonthOffset);
+      console.log(`Fetching category stats from ${from} to ${to}`);
+      
+      // Сначала получаем все категории
+      const allCategories = await fetchCategories();
+      
+      // Получаем данные по тренировкам
+      const rawCatStats = await fetchStatsByCategory(null, from, to);
+      
+      // Обрабатываем данные, чтобы включить все категории
+      const processedCatStats = [];
+      
+      // Для каждой категории убедимся, что она представлена в данных
+      allCategories.forEach(category => {
+        // Ищем существующие данные для этой категории
+        const existingData = rawCatStats.find(item => 
+          item.category_name === category.name || 
+          item.category_id === category.category_id
+        );
         
-        // Fetch category stats
-        const catStats = await mockFetchStatsByCategory(from, to);
-        setCategoryStats(catStats);
+        if (existingData) {
+          // Если данные существуют, добавляем их
+          processedCatStats.push(existingData);
+        } else {
+          // Если данных нет, добавляем запись с нулевым значением
+          processedCatStats.push({
+            category_name: category.name,
+            category_id: category.category_id,
+            total_training_time: 0
+          });
+        }
+      });
+      
+      setCategoryStats(processedCatStats);
+      
+      // Получаем общее время за месяц
+      const totalTime = await fetchTotalTrainingTime(null, from, to);
+      setTotalMonthlyTimeCategory(totalTime);
+    } catch (err) {
+      console.error('Error loading category stats:', err);
+      setCategoryStats([]);
+      setTotalMonthlyTimeCategory(null);
+    } finally {
+      setIsCategoryLoading(false);
+    }
+  };
+  fetchCategoryData();
+}, [categoryMonthOffset]);
+ // Fetch subscription stats when subscriptionMonthOffset changes
+ useEffect(() => {
+  const fetchSubscriptionData = async () => {
+    setIsSubscriptionLoading(true);
+    try {
+      const { from, to } = getMonthRange(subscriptionMonthOffset);
+      console.log(`Fetching subscription stats from ${from} to ${to}`);
+      
+      // Get all categories first
+      const allCategories = await fetchCategories();
+      
+      // Fetch the raw data from the API
+      const rawData = await fetchStatsByCategoryAndSubscription(null, from, to);
+      console.log("Raw subscription data:", rawData);
+      
+      // Process the data to include all categories
+      const processedData = [];
+      
+      // For each category, make sure it has entries for all subscription types
+      allCategories.forEach(category => {
+        // Find existing data for this category
+        const categoryData = rawData.filter(item => 
+          item.category_name === category.name
+        );
         
-        // Fetch total monthly time
-        const totalTime = await mockFetchTotalTrainingTime(from, to);
-        setTotalMonthlyTimeCategory(totalTime);
-      } catch (err) {
-        console.error('Error loading category stats:', err);
-        setCategoryStats([]);
-        setTotalMonthlyTimeCategory(null);
-      } finally {
-        setIsCategoryLoading(false);
-      }
-    };
-    fetchCategoryData();
-  }, [categoryMonthOffset]);
-  
-  // Fetch subscription stats when subscriptionMonthOffset changes
-  useEffect(() => {
-    const fetchSubscriptionData = async () => {
-      setIsSubscriptionLoading(true);
-      try {
-        const { from, to } = getMonthRange(subscriptionMonthOffset);
-        console.log(`Fetching subscription stats from ${from} to ${to}`);
-        
-        // Fetch category by subscription stats
-        const subStats = await mockFetchStatsByCategoryAndSubscription(from, to);
-        setCategorySubscriptionStats(subStats);
-        
-        // Fetch total monthly time
-        const totalTime = await mockFetchTotalTrainingTime(from, to);
-        setTotalMonthlyTimeSubscription(totalTime);
-      } catch (err) {
-        console.error('Error loading subscription stats:', err);
-        setCategorySubscriptionStats([]);
-        setTotalMonthlyTimeSubscription(null);
-      } finally {
-        setIsSubscriptionLoading(false);
-      }
-    };
-    fetchSubscriptionData();
-  }, [subscriptionMonthOffset]);
+        // If no data exists for this category, add entries with zero values
+        if (categoryData.length === 0) {
+          // Add zero entries for all subscription types
+          ['standard', 'premium', 'vip'].forEach(subType => {
+            processedData.push({
+              category_name: category.name,
+              subscription_type: subType,
+              total_training_time: 0
+            });
+          });
+        } else {
+          // Add the existing data
+          categoryData.forEach(item => {
+            processedData.push(item);
+          });
+        }
+      });
+      
+      setCategorySubscriptionStats(processedData);
+      
+      // Fetch total monthly time
+      const totalTime = await fetchTotalTrainingTime(null, from, to);
+      setTotalMonthlyTimeSubscription(totalTime);
+    } catch (err) {
+      console.error('Error loading subscription stats:', err);
+      setCategorySubscriptionStats([]);
+      setTotalMonthlyTimeSubscription(null);
+    } finally {
+      setIsSubscriptionLoading(false);
+    }
+  };
+  fetchSubscriptionData();
+}, [subscriptionMonthOffset]);
   
   // Fetch yearly subscription data on component mount
   useEffect(() => {
@@ -251,21 +320,30 @@ export default function StatsDashboard() {
         const { from, to } = getWeekRange(weekOffset);
         console.log(`Fetching weekly stats from ${from} to ${to}`);
         
-        // Fetch weekly stats
-        const dayStats = await mockFetchStatsByDayOfWeek(from, to);
-        setWeeklyStats(dayStats);
+        // Для админа передаем null вместо userId, чтобы получить данные по всем пользователям
+        const stats = await fetchStatsByDayOfWeek(null, from, to);
+        console.log("Weekly stats for all users:", stats);
         
-        // Calculate total weekly time
-        const totalTime = dayStats.reduce((sum, item) => sum + item.total_training_time, 0);
+        // Обязательно используем функцию formatWeeklyData для структурирования данных
+        const formattedData = formatWeeklyData(stats);
+        console.log('Formatted weekly data:', formattedData);
+        
+        setWeeklyStats(formattedData);
+        
+        // Вычисляем общее время за неделю
+        const totalTime = formattedData.reduce((sum, item) => sum + item.total_training_time, 0);
         setTotalWeeklyTime(totalTime);
-      } catch (err) {
-        console.error('Error loading weekly stats:', err);
-        setWeeklyStats([]);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+        // В случае ошибки создаем данные со всеми днями и нулевыми значениями
+        const emptyData = formatWeeklyData([]);
+        setWeeklyStats(emptyData);
         setTotalWeeklyTime(0);
       } finally {
         setIsWeeklyLoading(false);
       }
     };
+  
     fetchWeeklyData();
   }, [weekOffset]);
 
@@ -348,6 +426,7 @@ export default function StatsDashboard() {
         offset={weekOffset}
         setOffset={setWeekOffset}
         disableNext={weekOffset === 0}
+        minYAxis={4}
       />
     </div>
   );

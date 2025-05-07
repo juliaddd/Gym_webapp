@@ -119,17 +119,23 @@ from sqlalchemy.sql import extract
 from sqlalchemy import select, func
 
 
-def get_time_by_day_of_week(db: Session, user_id: int, date_from: str, date_to: str):
+def get_time_by_day_of_week(db: Session, user_id: Optional[int], date_from: str, date_to: str):
+    # Построение базового запроса
     query = (
         select(
             func.dayofweek(TrainingDB.date).label('day_num'),
             func.sum(TrainingDB.training_duration).label('total_training_time')
         )
-        .where(TrainingDB.user_id == user_id)
         .where(TrainingDB.date >= date_from)
         .where(TrainingDB.date <= date_to)
-        .group_by('day_num')
     )
+    
+    # Добавляем фильтр по user_id только если он не None
+    if user_id is not None:
+        query = query.where(TrainingDB.user_id == user_id)
+    
+    # Группировка по дням недели
+    query = query.group_by('day_num')
 
     results = db.execute(query).all()
 

@@ -10,8 +10,6 @@ import Sidebar from '../components/Sidebar';
 import UserDetails from '../components/UserDetails';
 import { fetchUserById, fetchCategories, fetchStatsByCategory, updateUser , fetchUsers, deleteUser } from '../../api'; 
 
-
-
 const chartOptions = {
   responsive: true,
   plugins: {
@@ -194,14 +192,14 @@ export default function AdminMainPage() {
         <div className="h-1/4 w-4/5">
           <StatisticsChart
             data={chartData}
-            onClick={() => router.push('/statistics')}
+            onClick={() => router.push('/statisticsadmin')}
             width="40%"
             height="150px"
           />
           <div className="text-center mt-8">
             <button
               className="text-blue-500 underline hover:text-blue-700"
-              onClick={() => router.push('/statistics')}
+              onClick={() => router.push('/statisticsadmin')}
             >
               See full statistics
             </button>

@@ -147,29 +147,33 @@ def update_user( db: Session, user_id: int, user: UserUpdate):
     
     return db_user
 
-def get_user_counts_by_sub(db: Session):
-    logger.debug("Fetching user counts by subscription type")
+def get_user_counts_by_sub(db: Session, year=None):
+    logger.debug(f"Fetching user counts by subscription type for year: {year}")
     try:
-        results = (
+        # Базовый запрос
+        query = (
             db.query(
                 UserDB.subscription_type,
                 func.count(UserDB.user_id).label("user_count"),
             )
             .group_by(UserDB.subscription_type)
-            .all()
         )
-        logger.debug(f"Query results: {results}")
         
-        # Преобразуем subscription_type в строку
-        response = [
+        # Если год указан, добавляем фильтр по году
+        if year:
+            # Используем дату создания пользователя
+            from sqlalchemy import extract
+            query = query.filter(extract('year', UserDB.created_at) <= year)
+        
+        results = query.all()
+        
+        return [
             UserCountBySubscriptionResponse(
-                subscription_type=row.subscription_type,  # Приводим к строке и нижнему регистру
+                subscription_type=row.subscription_type,
                 user_count=row.user_count
             )
             for row in results
         ]
-        logger.info(f"Returning user counts: {response}")
-        return response
     except SQLAlchemyError as sae:
         logger.error(f"Database error: {str(sae)}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(sae)}")

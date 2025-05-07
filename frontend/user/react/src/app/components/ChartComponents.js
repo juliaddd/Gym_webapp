@@ -8,6 +8,7 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
 // Component for Basic Bar Chart - used for Category and Weekly stats
+// Обновите компонент BasicBarChart в ChartComponents.js
 export const BasicBarChart = ({ 
   title, 
   data, 
@@ -18,7 +19,8 @@ export const BasicBarChart = ({
   isLoading,
   offset,
   setOffset,
-  disableNext = false
+  disableNext = false,
+  minYAxis = null  // Новый параметр
 }) => {
   if (isLoading) {
     return (
@@ -29,6 +31,14 @@ export const BasicBarChart = ({
     );
   }
 
+  // Определяем, есть ли ненулевые данные
+  const hasNonZeroValues = data && 
+  Array.isArray(data) && 
+  data.some(item => item[dataKey] > 0);
+
+// Устанавливаем фиксированный диапазон для оси Y, если все значения равны нулю
+const yAxisProps = !hasNonZeroValues ? { domain: [0, 5] } : {};
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
       <h2 className="text-xl font-bold mb-4">{title}</h2>
@@ -37,7 +47,7 @@ export const BasicBarChart = ({
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey={xAxisKey} />
-            <YAxis />
+            <YAxis {...yAxisProps} />
             <Tooltip />
             <Legend />
             <Bar dataKey={dataKey} fill="#8884d8" name="Training Hours" />
@@ -92,46 +102,84 @@ export const StackedCategoryChart = ({
     );
   }
 
-  // Transform data for stacked bar chart if data exists
-  let transformedData = [];
-  let subscriptionTypes = [];
-  let colors = {
-    'Basic': '#8884d8',    // blue
-    'Premium': '#82ca9d',  // green
-    'VIP': '#ffc658'       // orange
+  // Define all possible subscription types and their colors
+  const allSubscriptionTypes = ['standard', 'premium', 'vip'];
+  const colors = {
+    'standard': '#8884d8',  // blue
+    'premium': '#82ca9d',   // green
+    'vip': '#ffc658'        // orange
   };
 
+  // Transform data for stacked bar chart
+  let transformedData = [];
+  
   if (data && data.length > 0) {
+    // Extract unique categories
     const categories = [...new Set(data.map(item => item.category_name))];
-    subscriptionTypes = [...new Set(data.map(item => item.subscription_type))];
     
+    // Create a structured dataset with all combinations
     transformedData = categories.map(category => {
       const categoryData = { category_name: category };
-      subscriptionTypes.forEach(subType => {
-        const item = data.find(d => d.category_name === category && d.subscription_type === subType);
-        categoryData[subType] = item ? item.total_training_time : 0;
+      
+      // Initialize all subscription types with zero
+      allSubscriptionTypes.forEach(subType => {
+        categoryData[subType] = 0;
       });
+      
+      // Fill in actual values where they exist
+      data.forEach(item => {
+        if (item.category_name === category && 
+            allSubscriptionTypes.includes(item.subscription_type)) {
+          categoryData[item.subscription_type] = item.total_training_time;
+        }
+      });
+      
       return categoryData;
     });
   }
 
+  // Custom tooltip that shows all subscription types, even if zero
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-2 border border-gray-200 shadow-md">
+          <p className="font-bold">{label}</p>
+          {allSubscriptionTypes.map(subType => {
+            // Find this subscription type in the payload
+            const dataPoint = payload.find(p => p.dataKey === subType);
+            // Use the value if found, otherwise default to 0
+            const value = dataPoint ? dataPoint.value : 0;
+            
+            return (
+              <p key={subType} style={{color: colors[subType] || '#000'}}>
+                {subType}: {value}
+              </p>
+            );
+          })}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
       <h2 className="text-xl font-bold mb-4">{title}</h2>
-      {data && data.length > 0 ? (
+      {transformedData.length > 0 ? (
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={transformedData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="category_name" />
             <YAxis />
-            <Tooltip />
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
-            {subscriptionTypes.map((subType) => (
+            {/* Always render bars for all subscription types */}
+            {allSubscriptionTypes.map((subType) => (
               <Bar 
                 key={subType} 
                 dataKey={subType} 
                 stackId="a" 
-                fill={colors[subType] || `#${Math.floor(Math.random()*16777215).toString(16)}`}
+                fill={colors[subType]}
                 name={subType}
               />
             ))}

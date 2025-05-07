@@ -80,8 +80,12 @@ def read_user(user_id: int, db: Session = Depends(get_db), current_user: user_sc
     summary="Get user counts by subscription",
     description="Retrieve the number of users by subscription type. Admin access required.",
 )
-def get_user_counts_by_sub(db: Session = Depends(get_db),  current_user: user_schemas.UserResponse = Depends(is_admin_user)):
-    return user_crud.get_user_counts_by_sub(db)
+def get_user_counts_by_sub(
+    year: Optional[int] = Query(None),
+    db: Session = Depends(get_db),  
+    current_user: user_schemas.UserResponse = Depends(is_admin_user)
+):
+    return user_crud.get_user_counts_by_sub(db, year)
 
 @app.get(
     "/users/search/",

@@ -89,9 +89,21 @@ export const loginUser = async (credentials) => {
 };
 
 // Get user statistics by subscription type
-export const fetchUserStatsBySubscription = async () => {
+export const fetchUserStatsBySubscription = async (year = null) => {
     try {
-        const response = await fetch(`${apiBaseUrl}/users/stats/subscriptions`);
+        const token = localStorage.getItem('token');
+        let url = `${apiBaseUrl}/users/stats/subscriptions`;
+        
+        // Добавляем параметр года, если он указан
+        if (year !== null) {
+            url += `?year=${year}`;
+        }
+        
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
         return handleResponse(response);
     } catch (error) {
         console.error('Error fetching user stats by subscription:', error);
@@ -253,14 +265,20 @@ export const fetchTotalTrainingTime = async (userId, dateFrom, dateTo) => {
 };
 
 // Get statistics by category and subscription type
+// HOWEVER doesn show 0 values if they are present so v2 is below
 export const fetchStatsByCategoryAndSubscription = async (userId, dateFrom, dateTo) => {
     try {
+        const token = localStorage.getItem('token');
         const params = new URLSearchParams({
             date_from: dateFrom,
             date_to: dateTo,
         });
         if (userId) params.append('user_id', userId);
-        const response = await fetch(`${apiBaseUrl}/trainings/stats/by-subscription/?${params.toString()}`);
+        const response = await fetch(`${apiBaseUrl}/trainings/stats/by-subscription/?${params.toString()}`,{
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
         return handleResponse(response);
     } catch (error) {
         console.error('Error fetching stats by category and subscription:', error);
