@@ -29,6 +29,7 @@ export default function AdminMainPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [chartData, setChartData] = useState([]);
   const [usersData, setUsersData] = useState([]);
+  const [serverErrors, setServerErrors] = useState({});
 
   
   const [user, setUser] = useState({
@@ -133,31 +134,51 @@ export default function AdminMainPage() {
     return /\S+@\S+\.\S+/.test(email);
   };
   // Обработчик сохранения изменений пользователя
-  const handleSaveUser = async (updatedUser) => {
-    try {
-      if (!isValidEmail(updatedUser.email)) {
-        alert('Please enter valid email (ex: user@example.com)');
-        return;
-      }
-      const phoneError = validatePhoneNumber(updatedUser.phone_number);
-      if (phoneError) {
-        alert(phoneError);
-        return;
-      }
-      const savedUser = await updateUser(updatedUser.user_id, updatedUser);
-  
-      setUsersData((prev) =>
-        prev.map((user) =>
-          user.user_id === savedUser.user_id ? savedUser : user
-        )
-      );
-  
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Error. Could not update user data:', error);
-    }
-  };
+// В AdminMainPage.js 
 
+const handleSaveUser = async (updatedUser) => {
+  setServerErrors({});
+  try {
+    if (!isValidEmail(updatedUser.email)) {
+      setServerErrors({ email: 'Please enter valid email (ex: user@example.com)' });
+      return;
+    }
+    
+    const phoneError = validatePhoneNumber(updatedUser.phone_number);
+    if (phoneError) {
+      setServerErrors({ phone_number: phoneError });
+      return;
+    }
+    
+    const savedUser = await updateUser(updatedUser.user_id, updatedUser);
+
+    setUsersData((prev) =>
+      prev.map((user) =>
+        user.user_id === savedUser.user_id ? savedUser : user
+      )
+    );
+
+    setIsEditing(false);
+  } catch (error) {
+    console.error('Error. Could not update user data:', error);
+    
+    // Обработка конкретных серверных ошибок
+    if (error.message.includes('Email already registered')) {
+      setServerErrors({ 
+        email: 'This email is already registered in the system. Please use a different email.' 
+      });
+    } else if (error.message.includes('Phone number')) {
+      setServerErrors({ 
+        phone_number: 'Invalid phone number format. It must start with "+" followed by country code and digits.' 
+      });
+    } else {
+      // Общая ошибка
+      setServerErrors({ 
+        general: `Failed to update user: ${error.message}` 
+      });
+    }
+  }
+};
   // Обработчик удаления пользователя
   const handleDeleteUser = async (userId) => {
     try {
@@ -216,6 +237,7 @@ export default function AdminMainPage() {
           setSelectedUserId={setSelectedUserId}
           onSave={handleSaveUser}
           onDelete={handleDeleteUser}
+          serverErrors={serverErrors} 
         />
       </div>
     </div>

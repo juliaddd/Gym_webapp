@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -8,6 +8,9 @@ import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import { Edit, Check, Trash2 } from 'lucide-react';
 import ProfileIcon from '@/app/components/profileicon';
+import FormHelperText  from '@mui/material';
+
+
 
 export default function UserDetails({
   selectedUser,
@@ -20,13 +23,25 @@ export default function UserDetails({
   setSelectedUserId,
   onSave, // Новый проп для сохранения изменений
   onDelete, // Новый проп для удаления пользователя
+  serverErrors = {}
 }) {
-  // Синхронизация editableUser с selectedUser при его изменении
+  const [errors, setErrors] = useState({})
+
+
+  // Синхронизация editableUser с selectedUser
   useEffect(() => {
     if (selectedUser) {
       setEditableUser(selectedUser);
     }
   }, [selectedUser, setEditableUser]);
+
+  // Обработка серверных ошибок
+  useEffect(() => {
+    if (Object.keys(serverErrors).length > 0) {
+      setErrors(serverErrors);
+    }
+  }, [serverErrors]);
+
 
   if (!selectedUser) {
     return (
@@ -36,16 +51,38 @@ export default function UserDetails({
     );
   }
 
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEditableUser((prev) => ({ ...prev, [name]: value }));
+    
+    // Очищаем ошибку для поля при его изменении
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleSave = () => {
-    if (onSave) {
-      onSave(editableUser); // Передаём изменённые данные в родительский компонент
+    const newErrors = {};
+
+    // Проверка всех полей
+    ['name', 'surname', 'email', 'phone_number'].forEach((field) => {
+      const error = validateField(field, editableUser[field] || '');
+      if (error) newErrors[field] = error;
+    });
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
     }
-    setIsEditing(false);
+
+    if (onSave) {
+      onSave(editableUser);
+    }
   };
 
   const handleDelete = () => {
@@ -58,6 +95,13 @@ export default function UserDetails({
 
   return (
     <div className="h-3/5 w-5/5 bg-gray-100 p-4 rounded-xl shadow flex flex-col gap-4 overflow-y-auto  mt-15">
+       {/* Показываем общую ошибку, если она есть */}
+ {/* Красиво отформатированная общая ошибка */}
+      {errors.general && (
+        <div className="bg-red-100 p-2 rounded text-red-700">
+          {errors.general}
+        </div>
+      )}
       <div className="flex justify-between items-start">
         <ProfileIcon /> {}
         <div className="flex gap-2 items-center">
@@ -93,7 +137,10 @@ export default function UserDetails({
             value={editableUser?.[field] || ''}
             onChange={handleChange}
             disabled={!isEditing}
+            error={!!errors[field]}
+            helperText={errors[field]}
           />
+          
         ))}
 
         <FormControl fullWidth variant="outlined" disabled={!isEditing}>
@@ -127,6 +174,7 @@ export default function UserDetails({
           </Select>
         </FormControl>
       </div>
+      
     </div>
   );
 }

@@ -72,7 +72,7 @@ export default function Sidebar({
       </div>
 
       <button
-        onClick={() => router.push('/add-user')}
+        onClick={() => router.push('/adduser')}
         className="mb-4 py-2 bg-[#33b5aa] text-white rounded"
       >
         Add user

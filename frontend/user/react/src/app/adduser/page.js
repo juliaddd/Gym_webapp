@@ -6,10 +6,12 @@ import DropdownSelect from '@/app/components/DropdownSelect';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useRouter } from 'next/navigation';
 import { FormControl, InputLabel, Select, MenuItem, Box } from '@mui/material';
+import { createUser } from '../../api'; 
+
 
 export default function AddUserPage() {
   const router = useRouter();
-  
+
   // Initial form state
   const [formData, setFormData] = useState({
     name: '',
@@ -17,8 +19,8 @@ export default function AddUserPage() {
     email: '',
     phone: '',
     address: '',
-    subscription_type: 'Standard',
-    role: 'User',
+    subscription_type: 'standard',
+    role: 'user',
     password: '',
   });
 
@@ -41,42 +43,75 @@ export default function AddUserPage() {
   };
 
   const subscriptionOptions = [
-    { value: 'Standard', label: 'Standard' },
-    { value: 'Premium', label: 'Premium' },
-    { value: 'VIP', label: 'VIP' }
+    { value: 'standard', label: 'Standard' },
+    { value: 'premium', label: 'Premium' },
+    { value: 'vip', label: 'VIP' }
   ];
 
   const roleOptions = [
-    { value: 'User', label: 'User' },
-    { value: 'Admin', label: 'Admin' }
+    { value: 'user', label: 'User' },
+    { value: 'admin', label: 'Admin' }
   ];
 
   // This is the function that will be passed to the form component
-  const handleCreateUser = (userData) => {
-    // Prepare data for the API
-    const newUserData = {
-      ...userData,
+  const [serverErrors, setServerErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+const handleCreateUser = async (userData) => {
+  setIsSubmitting(true);
+  setServerErrors({});
+  
+  try {
+    // Правильная подготовка данных для API
+    const apiData = {
+      name: userData.name,
+      surname: userData.surname,
+      email: userData.email,
+      phone_number: userData.phone, 
+      address: userData.address || "",
       subscription_type: formData.subscription_type,
-      role: formData.role
+      role: formData.role,
+      password: userData.password
     };
     
-    console.log('Creating user with data:', newUserData);
+    console.log('Creating user with data:', apiData);
     
+    // Вызов API
+    const response = await createUser(apiData);
+    console.log('User created successfully:', response);
+    
+    // Показ успешного сообщения
+    alert('User created successfully!');
+    
+    // Перенаправление на админскую страницу
+    router.push('/adminmain');
+  } catch (error) {
+    console.error('Error creating user:', error);
+    
+    // Обработка конкретных ошибок от сервера
+    if (error.message.includes('Email already registered')) {
+      setServerErrors({
+        email: 'This email is already registered in the system. Please use a different email.'
+      });
+    } else if (error.message.includes('Phone number')) {
+      setServerErrors({
+        phone: 'Invalid phone number format. It must start with "+" followed by country code and digits.'
+      });
+    } else {
+      // Общая ошибка
+      setServerErrors({
+        general: `Failed to create user: ${error.message}`
+      });
+      alert(`Error: ${error.message}`);
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
-    setTimeout(() => {
-      // Show success message
-      alert('User created successfully!');
-      
-      // Redirect to admin main page
-      router.push('/adminmain'); // Replace with your actual route
-    }, 500);
-  };
-
-  // Go back to previous page
-  const handleGoBack = () => {
-    router.back();
-  };
-
+const handleGoBack = () => {
+  router.back();
+};
   return (
     <div style={{ backgroundColor: '#fdf9f3', minHeight: '100vh', display: 'flex', padding: '20px' }}>
       {/* Left green bar */}
@@ -100,6 +135,11 @@ export default function AddUserPage() {
 
         {/* User Form with subscription and role selections */}
         <div style={{ width: '100%', maxWidth: '600px' }}>
+        {serverErrors.general && (
+    <Alert severity="error" sx={{ mb: 2 }}>
+      {serverErrors.general}
+    </Alert>
+  )}
           {/* Использование компонента DropdownSelect */}
           <DropdownSelect
             id="subscription-type"
@@ -123,6 +163,8 @@ export default function AddUserPage() {
             onChange={handleFormChange}
             onSubmit={handleCreateUser}
             buttonText="Create"
+            disabled={isSubmitting}
+            serverErrors={serverErrors}
           />
         </div>
       </div>

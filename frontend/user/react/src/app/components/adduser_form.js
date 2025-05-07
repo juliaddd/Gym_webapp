@@ -7,13 +7,22 @@ import SaveIcon from '@mui/icons-material/Save';
 const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_MAX_LENGTH = 64;
 
-export default function AddUserForm({ formData, onChange, onSubmit, buttonText = "Create" }) {
+export default function AddUserForm({ formData, onChange, onSubmit, buttonText = "Create", disabled = false,serverErrors = {}  }) {
   const [userData, setUserData] = useState(formData);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     setUserData(formData);
   }, [formData]);
+
+  useEffect(() => {
+    if (Object.keys(serverErrors).length > 0) {
+      setErrors(prev => ({
+        ...prev,
+        ...serverErrors
+      }));
+    }
+  }, [serverErrors]);
 
   const handleFieldChange = (fieldName, value) => {
     const newData = {
@@ -97,6 +106,12 @@ export default function AddUserForm({ formData, onChange, onSubmit, buttonText =
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+      {/* Добавить отображение общей ошибки, если она есть */}
+      {errors.general && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errors.general}
+        </Alert>
+      )}
       <InputField
         label="Name"
         name="name"
