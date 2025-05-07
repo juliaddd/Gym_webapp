@@ -59,7 +59,7 @@ export default function UserDetails({
   return (
     <div className="h-3/5 w-5/5 bg-gray-100 p-4 rounded-xl shadow flex flex-col gap-4 overflow-y-auto  mt-15">
       <div className="flex justify-between items-start">
-        <ProfileIcon /> {/* Убрали пустой onClick */}
+        <ProfileIcon /> {}
         <div className="flex gap-2 items-center">
           {isEditing ? (
             <Check onClick={handleSave} className="cursor-pointer" />

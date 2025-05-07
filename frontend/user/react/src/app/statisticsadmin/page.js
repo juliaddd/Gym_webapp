@@ -376,9 +376,6 @@ useEffect(() => {
           <ArrowBackIcon />
           <span className="ml-2 text-lg">Back</span>
         </div>
-        <div>
-          <ProfileIcon userImage="https://example.com/user-avatar.jpg" onClick={handleProfileClick} />
-        </div>
       </div>
 
       {/* Category Chart */}

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
-import ProfileIcon from '@/app/components/profileicon';
 import StatisticsChart from '@/app/components/statisticschart';
 import Sidebar from '../components/Sidebar';
 import UserDetails from '../components/UserDetails';
