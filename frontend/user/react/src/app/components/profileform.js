@@ -92,22 +92,26 @@ export default function ProfileForm({ formData, onChange, onSaveChanges }) {
         readOnly={false}
       />
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, mb: 5 }}>
         <Button
-          type="submit"
           variant="contained"
           color="primary"
-          startIcon={<SaveIcon />}
+          type="submit"
           sx={{
             px: 4,
             py: 1.5,
             fontSize: '1rem',
-            textTransform: 'none'
+            textTransform: 'none',
+            bgcolor: '#33b5aa',
+            '&:hover': {
+              bgcolor: '#2a9d93',
+            },
           }}
         >
-          Save Changes
+          Save changes
         </Button>
       </Box>
+
     </Box>
   );
 }
