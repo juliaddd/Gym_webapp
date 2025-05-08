@@ -111,6 +111,33 @@ export const fetchUserStatsBySubscription = async (year = null) => {
     }
 };
 
+// Get statistics by subscription type over time
+export const fetchTrainingTimeBySubscription = async (userId) => {
+    try {
+        const token = localStorage.getItem('token');
+        const now = new Date();
+        const startDateLastYear = new Date(now.getFullYear() - 1, 0, 1); // Start from January of last year
+        const endDate = new Date();
+        
+        const params = new URLSearchParams({
+            date_from: startDateLastYear.toISOString().split('T')[0],
+            date_to: endDate.toISOString().split('T')[0],
+        });
+        
+        if (userId) params.append('user_id', userId);
+        
+        const response = await fetch(`${apiBaseUrl}/trainings/stats/by-subscription-over-time/?${params.toString()}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+        return handleResponse(response);
+    } catch (error) {
+        console.error('Error fetching training time by subscription:', error);
+        throw error;
+    }
+};
+
 // Search users with filters
 export const searchUsers = async (search = '', subscriptionType = '', role = '') => {
     try {

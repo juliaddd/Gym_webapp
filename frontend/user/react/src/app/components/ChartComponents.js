@@ -215,6 +215,7 @@ export const StackedCategoryChart = ({
   );
 };
 
+
 // Component for Subscription Changes Line Chart
 export const SubscriptionLineChart = ({ 
   title,
@@ -233,9 +234,9 @@ export const SubscriptionLineChart = ({
 
   // Colors for different subscription types
   const colors = {
-    'Basic': '#8884d8',    // blue
-    'Premium': '#82ca9d',  // green
-    'VIP': '#ffc658'       // orange
+    'standard': '#8884d8',    // blue
+    'premium': '#82ca9d',     // green
+    'vip': '#ffc658'          // orange
   };
 
   // Get unique subscription types if data exists
@@ -243,20 +244,25 @@ export const SubscriptionLineChart = ({
   if (data && data.length > 0) {
     subscriptionTypes = [...new Set(data.map(item => item.subscription_type))];
   }
+
+  // Уникальные месяцы для оси X
+  const uniqueMonths = [...new Set(data.map(item => item.monthYear))];
   
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
       <h2 className="text-xl font-bold mb-4">{title}</h2>
       {data && data.length > 0 ? (
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
+          <LineChart>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
-              dataKey="year" 
-              type="category"
+              dataKey="monthYear" 
+              type="category" 
               allowDuplicatedCategory={false}
+              // Используем только уникальные месяцы для оси X
+              data={uniqueMonths.map(month => ({ monthYear: month }))}
             />
-            <YAxis />
+            <YAxis label={{ value: 'Training Hours', angle: -90, position: 'insideLeft' }} />
             <Tooltip />
             <Legend />
             {subscriptionTypes.map((subType) => {
@@ -265,11 +271,12 @@ export const SubscriptionLineChart = ({
                 <Line
                   key={subType}
                   type="monotone"
-                  dataKey="user_count"
+                  dataKey="total_training_time"
                   data={subData}
                   name={subType}
                   stroke={colors[subType] || `#${Math.floor(Math.random()*16777215).toString(16)}`}
                   activeDot={{ r: 8 }}
+                  connectNulls={true}
                 />
               );
             })}

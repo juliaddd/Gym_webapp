@@ -154,3 +154,35 @@ def get_time_by_day_of_week(db: Session, user_id: Optional[int], date_from: str,
         {"day_of_week": day, "total_training_time": total_training_time}
         for day, total_training_time in stats_dict.items()
     ]
+
+def get_stats_by_subscription_over_time(db: Session, user_id: Optional[int], start_date: date, end_date: date):
+    """
+    Get statistics on training time by subscription type over time.
+    Groups by month and subscription type.
+    """
+    # Построение базового запроса
+    query = (
+        db.query(
+            func.date_format(TrainingDB.date, '%Y-%m').label("month_year"),
+            UserDB.subscription_type,
+            func.sum(TrainingDB.training_duration).label("total_training_time")
+        )
+        .join(UserDB, UserDB.user_id == TrainingDB.user_id)
+        .filter(TrainingDB.date.between(start_date, end_date))
+    )
+    
+    # Добавление фильтра по user_id, если он указан
+    if user_id:
+        query = query.filter(TrainingDB.user_id == user_id)
+    
+    # Группировка по месяцу и типу подписки
+    results = query.group_by("month_year", UserDB.subscription_type).all()
+    
+    # Форматирование результатов
+    return [
+        {
+            "month_year": row.month_year,
+            "subscription_type": row.subscription_type,
+            "total_training_time": row.total_training_time or 0
+        } for row in results
+    ]

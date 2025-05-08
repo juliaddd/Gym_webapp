@@ -9,7 +9,7 @@ import {
   fetchTotalTrainingTime,
   fetchStatsByCategoryAndSubscription,
   fetchUserStatsBySubscription,
-  fetchStatsByCategoryAndAllSubscriptions,
+  fetchTrainingTimeBySubscription,
   fetchStatsByDayOfWeek,
   fetchCategories
 } from '../../api'; // Import the actual API functions
@@ -167,15 +167,15 @@ export default function StatsDashboard() {
   const [totalWeeklyTime, setTotalWeeklyTime] = useState(0);
   
   // Format current subscription summary
-  const getCurrentSubscriptionSummary = () => {
-    if (!currentSubscriptionCounts || currentSubscriptionCounts.length === 0) {
-      return "No data available";
-    }
-    
-    return currentSubscriptionCounts.map(item => 
-      `${item.subscription_type}: ${item.user_count}`
-    ).join(', ');
-  };
+const getCurrentSubscriptionSummary = () => {
+  if (!currentSubscriptionCounts || currentSubscriptionCounts.length === 0) {
+    return "No data available";
+  }
+  
+  return currentSubscriptionCounts.map(item => 
+    `${item.subscription_type}: ${item.training_hours || 0} minutes`
+  ).join(', ');
+};
   
    // Fetch category stats when categoryMonthOffset changes
 useEffect(() => {
@@ -291,27 +291,83 @@ useEffect(() => {
   
   // Fetch yearly subscription data on component mount
   useEffect(() => {
-    const fetchYearlyData = async () => {
+    const fetchSubscriptionTrainingData = async () => {
       setIsSubscriptionYearlyLoading(true);
       try {
-        // Fetch subscription changes over years
-        const changes = await mockFetchSubscriptionChanges();
-        setSubscriptionChanges(changes);
+        // Определяем диапазон дат: начало прошлого года до сегодня
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+        oneYearAgo.setMonth(0, 1); // 1 января прошлого года
+        const startDate = oneYearAgo.toISOString().split('T')[0];
         
-        // Fetch current subscription counts
-        const subCounts = await mockFetchCurrentSubscriptionCounts();
-        setCurrentSubscriptionCounts(subCounts);
+        const today = new Date();
+        const endDate = today.toISOString().split('T')[0];
+        
+        // Получаем данные о тренировках по подпискам за период
+        const subscriptionData = await fetchTrainingTimeBySubscription(
+          null, // null для всех пользователей (для админа)
+          startDate,
+          endDate
+        );
+        console.log("Raw subscription data:", subscriptionData);
+        if (!subscriptionData || !Array.isArray(subscriptionData) || subscriptionData.length === 0) {
+          console.log("No subscription data returned from API");
+          setSubscriptionChanges([]);
+          setCurrentSubscriptionCounts([]);
+          setIsSubscriptionYearlyLoading(false);
+          return;
+        }
+        // Преобразуем данные для отображения в графике
+        // Добавляем более удобное представление даты для отображения на графике
+        const formattedData = subscriptionData.map(item => {
+          const [year, month] = item.month_year.split('-');
+          const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+          return {
+            ...item,
+            // Форматируем дату для отображения на оси X
+            monthYear: date.toLocaleString('default', { month: 'short', year: 'numeric' })
+          };
+        });
+        
+        setSubscriptionChanges(formattedData);
+        
+        // Получаем данные за текущий месяц для сводки
+        const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+        const currentMonthEnd = today.toISOString().split('T')[0];
+        
+        const currentMonthData = await fetchStatsByCategoryAndSubscription(null, currentMonthStart, currentMonthEnd);
+        
+        // Суммируем часы тренировок по типам подписок за текущий месяц
+        const subscriptionTotals = {};
+        currentMonthData.forEach(item => {
+          if (!subscriptionTotals[item.subscription_type]) {
+            subscriptionTotals[item.subscription_type] = 0;
+          }
+          subscriptionTotals[item.subscription_type] += item.total_training_time;
+        });
+        
+        // Форматируем для отображения
+        const currentSubscriptionData = Object.entries(subscriptionTotals).map(([subType, hours]) => ({
+          subscription_type: subType,
+          training_hours: hours
+        }));
+        
+        setCurrentSubscriptionCounts(currentSubscriptionData);
+        
       } catch (err) {
-        console.error('Error loading yearly stats:', err);
+        console.error('Error loading subscription training data:', err);
         setSubscriptionChanges([]);
         setCurrentSubscriptionCounts([]);
       } finally {
         setIsSubscriptionYearlyLoading(false);
       }
     };
-    fetchYearlyData();
+    
+    fetchSubscriptionTrainingData();
   }, []);
-  
+
+
+
   // Fetch weekly stats when weekOffset changes
   useEffect(() => {
     const fetchWeeklyData = async () => {
@@ -405,12 +461,11 @@ useEffect(() => {
 
       {/* Subscription Changes Chart */}
       <SubscriptionLineChart
-        title="Subscription Type Changes Over Years"
-        data={subscriptionChanges}
-        summary={`Current Subscription Counts: ${getCurrentSubscriptionSummary()}`}
-        isLoading={isSubscriptionYearlyLoading}
+      title="Training Hours by Subscription Type Over Time"
+      data={subscriptionChanges}
+      summary={`Current Month Training: ${getCurrentSubscriptionSummary()}`}
+      isLoading={isSubscriptionYearlyLoading}
       />
-
       {/* Weekly Stats Chart */}
       <BasicBarChart
         title="Gym Attendance by Day of Week"

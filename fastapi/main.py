@@ -211,3 +211,19 @@ def get_time_by_day_of_week(user_id: Optional[int] = Query(None),date_from: date
     if user_id and user_id != current_user.user_id and current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return training_crud.get_time_by_day_of_week(db, user_id, date_from, date_to)
+
+
+@app.get(
+    "/trainings/stats/by-subscription-over-time/",
+    response_model=List[training_schemas.SubscriptionTimeStatsResponse],
+    summary="Get training stats by subscription type over time",
+    description="Retrieve training statistics by subscription type over a date range, grouped by month. Admin access required.",
+)
+def get_stats_by_subscription_over_time_endpoint(
+    user_id: Optional[int] = Query(None),
+    date_from: date = Query(...),
+    date_to: date = Query(...),
+    db: Session = Depends(get_db),
+    current_user: user_schemas.UserResponse = Depends(is_admin_user)
+):
+    return training_crud.get_stats_by_subscription_over_time(db, user_id, date_from, date_to)
