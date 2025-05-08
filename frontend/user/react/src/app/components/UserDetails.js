@@ -66,14 +66,22 @@ export default function UserDetails({
     }
   };
 
-  const handleSave = () => {
-    const newErrors = {};
 
-    // Проверка всех полей
-    ['name', 'surname', 'email', 'phone_number'].forEach((field) => {
-      const error = validateField(field, editableUser[field] || '');
-      if (error) newErrors[field] = error;
-    });
+  const handleSave = () => {
+    // Простая базовая валидация только для email и телефона
+    const newErrors = {};
+    
+    // Валидация email
+    const emailRegex = /\S+@\S+\.\S+/;
+    if (editableUser.email && !emailRegex.test(editableUser.email)) {
+      newErrors.email = 'Please enter a valid email (ex: user@example.com)';
+    }
+    
+    // Валидация телефона
+    const phoneRegex = /^\+(\d{1,4})\s?(\d{1,12})(\s?\d{1,2})?$/;
+    if (editableUser.phone_number && !phoneRegex.test(editableUser.phone_number)) {
+      newErrors.phone_number = "Phone number must start with '+' and contain digits";
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -97,11 +105,7 @@ export default function UserDetails({
     <div className="h-3/5 w-5/5 bg-gray-100 p-4 rounded-xl shadow flex flex-col gap-4 overflow-y-auto  mt-15">
        {/* Показываем общую ошибку, если она есть */}
  {/* Красиво отформатированная общая ошибка */}
-      {errors.general && (
-        <div className="bg-red-100 p-2 rounded text-red-700">
-          {errors.general}
-        </div>
-      )}
+
       <div className="flex justify-between items-start">
         <ProfileIcon /> {}
         <div className="flex gap-2 items-center">
@@ -138,7 +142,7 @@ export default function UserDetails({
             onChange={handleChange}
             disabled={!isEditing}
             error={!!errors[field]}
-            helperText={errors[field]}
+            helperText={errors[field] || ''}
           />
           
         ))}
