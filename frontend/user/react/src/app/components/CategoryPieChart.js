@@ -69,7 +69,6 @@ export default function CategoryPieChart({ data = [] }) {
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      <h2 className="text-xl font-semibold text-center mb-4">Category Breakdown (%)</h2>
       <Pie data={chartData} ref={chartRef} options={options} />
     </div>
   );

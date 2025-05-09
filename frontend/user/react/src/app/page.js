@@ -92,9 +92,18 @@ return (
             justifyContent: 'center',
           }}
         >
-          <h3 style={{ textAlign: 'center', marginBottom: '15px' }}>
+          <h1 
+            style={{ 
+              textAlign: 'center', 
+              marginBottom: '30px', 
+              fontSize: '32px',
+              fontWeight: '500',
+              color: '#4a4a4a',
+              fontFamily: 'Arial, sans-serif'
+            }}
+          >
             Welcome to JaenGym!
-          </h3>
+          </h1>
 
           {/* Profile Icon */}
           <div

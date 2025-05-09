@@ -3,13 +3,27 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ProfileIcon from '@/app/components/profileicon';
 import StatisticsChart from '@/app/components/statisticschart';
-import MonthlyCategoryChart from '@/app/components/MonthlyCategoryChart'
-import CategoryPieChart from '@/app/components/CategoryPieChart'
+import MonthlyCategoryChart from '@/app/components/MonthlyCategoryChart';
+import CategoryPieChart from '@/app/components/CategoryPieChart';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { fetchUserById, fetchStatsByDayOfWeek, fetchStatsByCategory, fetchCategories, fetchTotalTrainingTime  } from '../../api'; 
+import { fetchUserById, fetchStatsByDayOfWeek, fetchStatsByCategory, fetchCategories, fetchTotalTrainingTime } from '../../api';
 
+// Time change func
+const formatTimeHoursMinutes = (totalMinutes) => {
+  if (!totalMinutes) return '0 hours 0 minutes';
+  const minutes = Math.round(Number(totalMinutes));
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  if (hours > 0 && remainingMinutes > 0) {
+    return `${hours} ${hours === 1 ? 'hour' : 'hours'} ${remainingMinutes} ${remainingMinutes === 1 ? 'minute' : 'minutes'}`;
+  }
+  if (hours > 0) {
+    return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+  }
+  return `${remainingMinutes} ${remainingMinutes === 1 ? 'minute' : 'minutes'}`;
+};
 
 export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) {
   const [allMonthlyData, setAllMonthlyData] = useState([]);
@@ -22,10 +36,9 @@ export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) 
 
   const [totalMonthlyTime, setTotalMonthlyTime] = useState(0);
   const [allTimeCategoryStats, setAllTimeCategoryStats] = useState([]);
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [isLoading, setIsLoading] = useState(true);
 
   const router = useRouter();
-
 
   // function to get start and end dates of the week
   const getWeekRange = (offset) => {
@@ -50,11 +63,9 @@ export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) 
   const getMonthRange = (offset) => {
     const now = new Date();
     
-
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth() - offset, 1);
     firstDayOfMonth.setHours(0, 0, 0, 0);
   
-
     const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() - offset + 1, 0);
     lastDayOfMonth.setHours(23, 59, 59, 999);
   
@@ -64,12 +75,11 @@ export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) 
     };
   };
 
-    // Update getMonthlyTotalTime to use the stored total_time
-   const getMonthlyTotalTime = () => {
-     return totalMonthlyTime?.total_training_time || 0;
+  // Update getMonthlyTotalTime to use the stored total_time
+  const getMonthlyTotalTime = () => {
+    return totalMonthlyTime?.total_training_time || 0;
   };
     
-
   const getMonthName = (offset) => {
     const now = new Date();
     
@@ -139,7 +149,7 @@ export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) 
         const totalTimeData = await fetchTotalTrainingTime(userId, from, to);
         setTotalMonthlyTime(totalTimeData);
         // Set the transformed data for categories
-      setMonthStatistics(transformedData);
+        setMonthStatistics(transformedData);
       
       } catch (err) {
         console.error('Error loading monthly stats:', err);
@@ -154,15 +164,14 @@ export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) 
   
   useEffect(() => {
     const fetchPieData = async () => {
-    const userId = localStorage.getItem('user_id');
-    const allTimeFrom = '2000-01-01';
-    const today = new Date().toISOString().split('T')[0];
+      const userId = localStorage.getItem('user_id');
+      const allTimeFrom = '2000-01-01';
+      const today = new Date().toISOString().split('T')[0];
     
+      const data = await fetchStatsByCategory(userId, allTimeFrom, today);
+      const allCategories = await fetchCategories() || [];
 
-    const data = await fetchStatsByCategory(userId, allTimeFrom, today);
-    const allCategories = await fetchCategories() || [];
-
-    const transformedData = allCategories.map(category => {
+      const transformedData = allCategories.map(category => {
         const categoryData = data.find(item => item.category_id === category.category_id);
         return {
           category_name: category.name,
@@ -174,7 +183,6 @@ export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) 
     fetchPieData();
   }, []);
 
-
   // Handle back button click
   const handleBackClick = () => {
     router.back();
@@ -184,6 +192,7 @@ export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) 
   const handleProfileClick = () => {
     router.push('/profile');
   };
+  
   const { from, to } = getWeekRange(weekOffset);
   const { month, year } = getMonthName(monthOffset);
 
@@ -198,73 +207,197 @@ export default function StatisticsPage({ onBack, onChangeWeek, onChangeMonth }) 
     return <div>Loading month statistics...</div>;
   }
 
+  // Форматируем даты для заголовка
+  const formatDate = (dateStr) => {
+    const dateParts = dateStr.split('-');
+    return `${dateParts[2]} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][parseInt(dateParts[1])-1]}`;
+  };
+  
+  const weekTitle = `${formatDate(from)} - ${formatDate(to)}`;
+
   return (
     <div>
       {/* Profile Section */}
-      <div className="flex justify-end">
-        <ProfileIcon userImage="https://example.com/user-avatar.jpg" onClick={handleProfileClick} />
-      </div>
-
-      {/* Back Button */}
-      <div className="back-button" onClick={handleBackClick} style={{ cursor: 'pointer', margin: '10px' }}>
-        <ArrowBackIcon />
-        <span style={{ marginLeft: '5px' }}>Back</span>
+      <div className="w-full flex justify-between items-center mb-4">
+        {/* Back Button and Header */}
+        <div className="flex items-center">
+          <div className="back-button cursor-pointer flex items-center" onClick={handleBackClick}>
+            <ArrowBackIcon />
+            <span style={{ marginLeft: '5px' }}>Back</span>
+          </div>
+        </div>
+        {/* Profile Icon */}
+        <div className="profile-icon">
+          <ProfileIcon userImage="https://example.com/user-avatar.jpg" onClick={handleProfileClick} />
+        </div>
       </div>
 
       {/* Weekly Statistics Section */}
-      <div className="my-8">
-        <StatisticsChart data={weekStatistics} onClick={onChangeWeek} />
-      </div>
-
-      {/* Navigation Arrows for Week */}
-      <div className="flex justify-between mt-4">
-        <div
-          onClick={() => setWeekOffset(weekOffset - 1)}
-        >
-          <ArrowBackIosIcon />
+      <div style={{ marginBottom: '40px' }}>
+        <h2 style={{ 
+          fontSize: '24px', 
+          textAlign: 'center', 
+          marginBottom: '20px',
+          fontWeight: '500'
+        }}>
+          {weekTitle}
+        </h2>
+        
+        <div style={{ 
+          position: 'relative', 
+          padding: '0 50px',
+          marginBottom: '20px'
+        }}>
+          <div 
+            onClick={() => setWeekOffset(weekOffset - 1)}
+            style={{
+              position: 'absolute',
+              left: '0',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: '#f0f0f0',
+              borderRadius: '50%',
+              width: '50px',
+              height: '50px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              zIndex: 2
+            }}
+          >
+            <ArrowBackIosIcon style={{ marginLeft: '8px' }} />
+          </div>
+          
+          {/* График */}
+          <StatisticsChart data={weekStatistics} onClick={onChangeWeek} units="minutes" />
+          
+          {/* Правая стрелка */}
+          <div 
+            onClick={() => setWeekOffset(weekOffset + 1)}
+            style={{
+              position: 'absolute',
+              right: '0',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: '#f0f0f0',
+              borderRadius: '50%',
+              width: '50px',
+              height: '50px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              zIndex: 2
+            }}
+          >
+            <ArrowForwardIosIcon />
+          </div>
         </div>
-        <div
-          onClick={() => setWeekOffset(weekOffset + 1)}
-        >
-          <ArrowForwardIosIcon />
-        </div>
-      </div>
-
-      <div className="text-center mt-2">
-      <p className="text-center text-lg font-semibold mb-2"> Week: {from} — {to} </p>
-      <p className="text-lg font-semibold">
-          Total Weekly Training Time: {getWeeklyTotalTime()} minutes
-      </p>
-      </div>
-      {/* Monthly Statistics Section */}
-      <div className="my-8">
-        <MonthlyCategoryChart data={monthStatistics} />
-      </div>
-
-      {/* Navigation Arrows for Month */}
-      <div className="flex justify-between mt-4">
-        <div
-          onClick={() => setMonthOffset(monthOffset + 1)}
-        >
-          <ArrowBackIosIcon />
-        </div>
-        <div
-          onClick={() => setMonthOffset(monthOffset - 1)}
-        >
-          <ArrowForwardIosIcon />
-        </div>
-      </div>
-      <div className="text-center mt-2">
-        <p className="text-center text-lg font-semibold mb-2"> Month:{month} {year} </p>
-          <p className="text-lg font-semibold">
-            Total Monthly Training Time: {getMonthlyTotalTime()} minutes
+        
+        {/* Общее время */}
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ 
+            fontSize: '18px', 
+            fontWeight: '500',
+            marginBottom: '10px'
+          }}>
+            Total hours: {formatTimeHoursMinutes(getWeeklyTotalTime())}
           </p>
         </div>
+      </div>
 
-        {/* Pie Chart Section */}
-        <CategoryPieChart
-        data={allTimeCategoryStats}
-        />
+      {/* Monthly Statistics Section */}
+      <div style={{ marginBottom: '40px' }}>
+        <h2 style={{ 
+          fontSize: '24px', 
+          textAlign: 'center', 
+          marginBottom: '20px',
+          fontWeight: '500'
+        }}>
+          {month} {year}
+        </h2>
+        
+        <div style={{ 
+          position: 'relative', 
+          padding: '0 50px',
+          marginBottom: '20px'
+        }}>
+          {/* Левая стрелка */}
+          <div 
+            onClick={() => setMonthOffset(monthOffset + 1)}
+            style={{
+              position: 'absolute',
+              left: '0',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: '#f0f0f0',
+              borderRadius: '50%',
+              width: '50px',
+              height: '50px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              zIndex: 2
+            }}
+          >
+            <ArrowBackIosIcon style={{ marginLeft: '8px' }} />
+          </div>
+          
+          <MonthlyCategoryChart data={monthStatistics} />
+          
+          {/* Правая стрелка */}
+          <div 
+            onClick={() => setMonthOffset(monthOffset - 1)}
+            style={{
+              position: 'absolute',
+              right: '0',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: '#f0f0f0',
+              borderRadius: '50%',
+              width: '50px',
+              height: '50px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              zIndex: 2
+            }}
+          >
+            <ArrowForwardIosIcon />
+          </div>
+        </div>
+        
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ 
+            fontSize: '18px', 
+            fontWeight: '500',
+            marginBottom: '10px'
+          }}>
+            Total hours: {formatTimeHoursMinutes(getMonthlyTotalTime())}
+          </p>
+        </div>
+      </div>
+
+      {/* All-time Stats Section */}
+      <div style={{ marginBottom: '40px' }}>
+        <h2 style={{ 
+          fontSize: '24px', 
+          textAlign: 'center', 
+          marginBottom: '20px',
+          fontWeight: '500'
+        }}>
+          Percentage breakdown by category
+        </h2>
+        
+        <CategoryPieChart data={allTimeCategoryStats} />
+      </div>
     </div>
   );
 }
