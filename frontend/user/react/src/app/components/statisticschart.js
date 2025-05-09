@@ -3,17 +3,15 @@ import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { useState, useEffect } from 'react';
 
-// Регистрируем необходимые элементы для Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export default function StatisticsChart({ data, onClick, width, height }) {
-  // Преобразование данных в формат, подходящий для Chart.js
+export default function StatisticsChart({ data, onClick, width, height, units = 'units' }) {
   const chartData = {
-    labels: data.map((item) => item.day_of_week), // Дни недели
+    labels: data.map((item) => item.day_of_week),
     datasets: [
       {
         label: 'Workout Statistics',
-        data: data.map((item) => item.total_training_time), // Значения статистики
+        data: data.map((item) => item.total_training_time),
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         borderColor: 'rgba(75, 192, 192, 1)',
         borderWidth: 1,
@@ -21,7 +19,7 @@ export default function StatisticsChart({ data, onClick, width, height }) {
     ],
   };
 
-  // Опции графика для настройки отображения
+
   const options = {
     responsive: true,
     plugins: {
@@ -30,7 +28,7 @@ export default function StatisticsChart({ data, onClick, width, height }) {
       },
       tooltip: {
         callbacks: {
-          label: (tooltipItem) => `${tooltipItem.raw} units`, // Форматируем всплывающие подсказки
+          label: (tooltipItem) => `${tooltipItem.raw} ${units}`,
         },
       },
     },

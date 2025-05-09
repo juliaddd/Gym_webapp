@@ -1,179 +1,166 @@
 'use client';
-import { useState, useEffect  } from 'react';
+import { useState } from 'react';
+import InputField from '@/app/components/inputfield'; // Assuming InputField is the file path
+import ProfileIcon from '@/app/components/profileicon'; // The ProfileIcon component
+import Button from '@mui/material/Button';
 import { useRouter } from 'next/navigation';
-import ProfileIcon from './components/profileicon';
-import StatisticsChart from '@/app/components/statisticschart';
-import CategoryGrid from './components/categorygrid';
-import { fetchUserById, fetchStatsByDayOfWeek, fetchCategories } from '../api'; 
+import { loginUser, fetchUserById } from '../api';
 
-export default function UserMainPage() {
+export default function LoginPage({ onLogin }) {
   const router = useRouter(); // Next.js useRouter hook for navigation
 
-  const [user, setUser] = useState({
-    avatar: 'https://example.com/user-avatar.jpg',
-    name: 'Loading...',
+  const [loginData, setLoginData] = useState({
+    username: '',
+    password: '',
   });
 
-  const [statistics, setStatistics] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // Loading user data during mountiong
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadUser = async () => {
-      try {
-        const userId = localStorage.getItem('user_id');
-        const token = localStorage.getItem('token');
-
-        if (!userId || !token) {
-          router.push('/login');
-          return;
-        }
-
-        const userData = await fetchUserById(userId);
-        setUser({
-          avatar: userData.avatar || 'https://example.com/user-avatar.jpg', // if there are no prof pic
-          name: `${userData.name} ${userData.surname || ''}`.trim(),
-        });
-
-        if (isMounted) setUser(userData);
-      } catch (error) {
-        console.error('Failed to load user:', error);
-        router.push('/login');
-      }
-    };
-
-    loadUser();
-
-    return () => { isMounted = false; };
-  }, []);
-
-  // Define basic statistics data 
-  useEffect(() => {
-    const fetchStatisticsData = async () => {
-      try {
-        const userId = localStorage.getItem('user_id');
-        if (!userId) {
-          throw new Error('User ID not found in localStorage');
-        }
-
-        // Определяем понедельник текущей недели
-      const today = new Date();
-      const dayOfWeek = today.getDay(); // воскресенье — 0, понедельник — 1, ..., суббота — 6
-      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // если воскресенье — идем назад на 6 дней
-      const monday = new Date(today);
-      monday.setDate(today.getDate() + diffToMonday);
-      monday.setHours(0, 0, 0, 0);
-
-      // Воскресенье текущей недели — прибавим 6 дней от понедельника
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      sunday.setHours(23, 59, 59, 999);
-
-      // Преобразуем в строки
-      const dateFrom = monday.toISOString().split('T')[0];
-      const dateTo = sunday.toISOString().split('T')[0];
-      const stats = await fetchStatsByDayOfWeek(userId, dateFrom, dateTo);
-
-        // Приводим данные к формату, который ожидает StatisticsChart
-        // const formattedStats = stats.map((stat) => ({
-        //   day: stat.day_of_week,
-        //   value: stat.total_training_time,
-        // }));
-        setStatistics(stats);
-        console.log('Formatted Stats for Chart:', stats);
-      } catch (error) {
-        console.error('Error fetching statistics:', error);
-        // Если ошибка, можно показать заглушку
-        setStatistics([
-          { day: 'Monday', value: 0 },
-          { day: 'Tuesday', value: 0 },
-          { day: 'Wednesday', value: 0 },
-          { day: 'Thursday', value: 0 },
-          { day: 'Friday', value: 0 },
-          { day: 'Saturday', value: 0 },
-          { day: 'Sunday', value: 0 },
-        ]);
-      }
-    };
-
-    fetchStatisticsData();
-  }, []);
-
-  // Define basic categories 
-    // Загрузка категорий
-  useEffect(() => {
-    const fetchCategoriesData = async () => {
-      try {
-        const categoriesData = await fetchCategories();
-        // Приводим данные к формату, который ожидает CategoryGrid
-        const formattedCategories = categoriesData.map((category) => ({
-          id: category.category_id,
-          title: category.name,
-          imageUrl: category.image || '/path-to-default-image.jpg', // Если image не указан
-        }));
-        setCategories(formattedCategories);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        // Если ошибка, можно показать заглушку
-        setCategories([
-          { id: 1, title: 'Abs', imageUrl: '/path-to-cardio-image.jpg' },
-          { id: 2, title: 'Stretching', imageUrl: '/path-to-stretching-image.jpg' },
-          { id: 3, title: 'Back', imageUrl: '/path-to-back-image.jpg' },
-          { id: 4, title: 'Arms', imageUrl: '/path-to-arms-image.jpg' },
-          { id: 5, title: 'Legs', imageUrl: '/path-to-legs-image.jpg' },
-          { id: 6, title: 'Cardio', imageUrl: '/path-to-abs-image.jpg' },
-        ]);
-      }
-    };
-
-    fetchCategoriesData();
-  }, []);
-
-  // Handle profile click (redirect to profile page)
-  const handleProfileClick = () => {
-    router.push('/profile'); // Redirect to profile page
+  const handleInputChange = (field, value) => {
+    setLoginData({
+      ...loginData,
+      [field]: value,
+    });
   };
 
-  // Handle category selection (redirect to training page)
-const handleCategorySelect = (category) => {
-  localStorage.setItem('selectedCategory', JSON.stringify(category));
-  router.push('/timer');
+const handleLoginSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
 
+        try {
+            
+            const credentials = {
+                email: loginData.username,
+                password: loginData.password,
+            };
+
+            const result = await loginUser(credentials);
+            
+            // Save token and user_id in localStorage
+            localStorage.setItem('token', result.access_token);
+            localStorage.setItem('user_id', result.user_id);
+            
+            // Если передан onLogin, вызываем его (для обратной совместимости)
+            if (onLogin) onLogin(loginData);
+
+            const userData = await fetchUserById(result.user_id);
+            if (userData.role == "admin")
+              router.push('/adminmain');
+            else
+              router.push('/usermain');
+            // Перенаправляем на главную страницу
+            
+        } catch (err) {
+            setError('Failed to login. Check your email and password.');
+            console.error('Login error:', err);
+        } finally {
+            setLoading(false);
+        }
 };
+  
 
-// Handle statistics click (redirect to statistics page)
-const handleStatisticsClick = () => {
-  router.push('/statisticsuser'); // Use router.push instead
-};
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Profile Section */}
-      <div className="flex justify-end">
-        <ProfileIcon userImage={user.avatar} onClick={handleProfileClick} />
-      </div>
-
-      {/* Statistics Section */}
-      <h1 className="text-2xl font-bold mb-4">Your Weekly Workout Statistics</h1>
-      <div className="my-8">
-        <StatisticsChart data={statistics}/>
-        {/* Кликабельный текст для просмотра полной статистики */}
-      <button
-        onClick={handleStatisticsClick}
-        className="text-blue-500 hover:text-blue-700 underline" style={{ cursor: 'pointer' }}
+return (
+    <div
+      style={{
+        backgroundColor: '#fdf9f3',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          width: '100%',
+          maxWidth: '900px',
+          height: '500px',
+          position: 'relative',
+        }}
       >
-        See full statistics
-      </button>
-      </div>
+        {/* Left part */}
+        <div
+          style={{
+            width: '50%',
+            padding: '40px 30px',
+            backgroundColor: '#fdf9f3',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
+          <h3 style={{ textAlign: 'center', marginBottom: '15px' }}>
+            Welcome to JaenGym!
+          </h3>
 
+          {/* Profile Icon */}
+          <div
+            className="profile-icon"
+            style={{ display: 'flex', justifyContent: 'center', marginBottom: '25px' }}
+          >
+            <ProfileIcon
+              onClick={() => {}}
+              style={{ width: 100, height: 100, borderRadius: '50%' }}
+            />
+          </div>
 
-      {/* Categories Grid */}
-      <div className="my-8">
-        <CategoryGrid categories={categories} onCategorySelect={handleCategorySelect} />
+          {/* Input Fields */}
+          <form onSubmit={handleLoginSubmit}>
+            <InputField
+              label="Enter login"
+              value={loginData.username}
+              onChange={handleInputChange}
+              name="username"
+            />
+            <InputField
+              label="Enter password"
+              type="password"
+              value={loginData.password}
+              onChange={handleInputChange}
+              name="password"
+            />
+
+            {/* Error Message */}
+            {error && <p className="text-red-500 mb-4">{error}</p>}
+
+            {/* Submit Button */}           
+            <Button
+              variant="contained"
+              type="submit"
+              disabled={loading}
+              fullWidth
+              style={{ backgroundColor: '#33b5aa', border: 'none', marginTop: '20px' }}
+            >
+              {loading ? 'Logging in...' : 'Log in'}
+            </Button>
+          </form>
+        </div>
+
+        {/* Right part */}
+        <div
+          style={{
+            position: 'absolute',
+            right: 20,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '45%',
+            height: '95%',
+            backgroundColor: '#999',
+            borderRadius: '20px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <img
+            src="/images/gym.png"
+            alt="Barbell"
+            style={{ maxWidth: '100%', height: 'auto' }}
+          />
+        </div>
       </div>
     </div>
   );

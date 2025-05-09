@@ -232,6 +232,7 @@ export default function AdminMainPage() {
         <div className="h-1/4 w-4/5">
           <StatisticsChart
             data={chartData}
+            units="hours"
             onClick={() => router.push('/statisticsadmin')}
             width="40%"
             height="150px"
