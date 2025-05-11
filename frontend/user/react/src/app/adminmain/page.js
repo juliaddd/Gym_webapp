@@ -133,52 +133,72 @@ export default function AdminMainPage() {
   const isValidEmail = (email) => {
     return /\S+@\S+\.\S+/.test(email);
   };
-  // Обработчик сохранения изменений пользователя
-// В AdminMainPage.js 
 
-const handleSaveUser = async (updatedUser) => {
-  setServerErrors({});
-  try {
-    if (!isValidEmail(updatedUser.email)) {
-      setServerErrors({ email: 'Please enter valid email (ex: user@example.com)' });
-      return;
-    }
-    
-    const phoneError = validatePhoneNumber(updatedUser.phone_number);
-    if (phoneError) {
-      setServerErrors({ phone_number: phoneError });
-      return;
-    }
-    
-    const savedUser = await updateUser(updatedUser.user_id, updatedUser);
 
-    setUsersData((prev) =>
-      prev.map((user) =>
-        user.user_id === savedUser.user_id ? savedUser : user
-      )
-    );
-
-    setIsEditing(false);
-  } catch (error) {
-    console.error('Error. Could not update user data:', error);
-    
-    // Обработка конкретных серверных ошибок
-    if (error.message.includes('Email already registered')) {
-      setServerErrors({ 
-        email: 'This email is already registered in the system. Please use a different email.' 
-      });
-    } else if (error.message.includes('Phone number')) {
-      setServerErrors({ 
-        phone_number: 'Invalid phone number format. It must start with "+" followed by country code and digits.' 
-      });
-    } else {
-      // Общая ошибка
-      setServerErrors({ 
-        general: `Failed to update user: ${error.message}` 
-      });
+  const handleSaveUser = async (updatedUser) => {
+    setServerErrors({});
+    try {
+      // Валидация на стороне клиента
+      if (!isValidEmail(updatedUser.email)) {
+        setServerErrors({ email: 'Please enter valid email (ex: user@example.com)' });
+        return;
+      }
+      
+      const phoneError = validatePhoneNumber(updatedUser.phone_number);
+      if (phoneError) {
+        setServerErrors({ phone_number: phoneError });
+        return;
+      }
+      
+      // Отправка запроса
+      const savedUser = await updateUser(updatedUser.user_id, updatedUser);
+  
+      // Обновление интерфейса при успехе
+      setUsersData((prev) =>
+        prev.map((user) =>
+          user.user_id === savedUser.user_id ? savedUser : user
+        )
+      );
+  
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error. Could not update user data:', error);
+      
+      // Для отладки
+      console.log('Ошибка:', JSON.stringify(error));
+      
+      // Обработка ошибок с сервера
+      if (error.response && error.response.data) {
+        // Если сервер возвращает структурированный ответ
+        const errorData = error.response.data;
+        
+        if (errorData.detail && errorData.detail.includes('Duplicate entry') && errorData.detail.includes('unique_email')) {
+          setServerErrors({ 
+            email: 'This email is already registered in the system. Please use a different email.',
+            general: 'Failed to update user: Email already exists' 
+          });
+        } else if (errorData.message) {
+          // Общая ошибка с сообщением
+          setServerErrors({ general: errorData.message });
+        } else {
+          // Общая ошибка без структуры
+          setServerErrors({ general: `Failed to update user: ${error.message || 'Unknown error'}` });
+        }
+      } else if (error.message && error.message.includes('Duplicate entry') && error.message.includes('unique_email')) {
+        // Обработка текста ошибки SQL
+        setServerErrors({ 
+          email: 'This email is already registered in the system. Please use a different email.',
+          general: 'Failed to update user: Email already exists' 
+        });
+      } else {
+        // Общая ошибка
+        setServerErrors({ 
+          general: `Failed to update user: ${error.message || 'Unknown error'}` 
+        });
+      }
     }
-  }
-};
+  };
+  
   // Обработчик удаления пользователя
   const handleDeleteUser = async (userId) => {
     try {
@@ -212,6 +232,7 @@ const handleSaveUser = async (updatedUser) => {
         <div className="h-1/4 w-4/5">
           <StatisticsChart
             data={chartData}
+            units="hours"
             onClick={() => router.push('/statisticsadmin')}
             width="40%"
             height="150px"

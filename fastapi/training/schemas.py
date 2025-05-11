@@ -40,3 +40,8 @@ class TrainingResponse(TrainingBase):
 
     class Config:
         from_attributes = True
+
+class SubscriptionTimeStatsResponse(BaseModel):
+    month_year: str
+    subscription_type: SubscriptionType
+    total_training_time: int

@@ -4,7 +4,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text
 
 # Database configuration
+HEAD
 SQLALCHEMY_DATABASE_URL = "mysql+pymysql://webapp:Jaen2025.@localhost/webapp"
+
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
