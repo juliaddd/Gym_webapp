@@ -35,57 +35,92 @@ export default function RegistrationPage({ onRegister, onLoginRedirect }) {
   };
 
   return (
-    <div className="registration-page">
-      <h2>Welcome to JaenGym!</h2>
+    <div className="min-h-screen w-full flex flex-col items-center justify-start px-4 pt-10 bg-white">
+      {/* Title */}
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        Welcome to JaenGym!
+      </h2>
 
-      {/* Profile Icon */}
-      <div className="profile-icon">
-        <ProfileIcon userImage="https://example.com/user-avatar.jpg" onClick={() => {}} />
+        {/* Profile Icon */}
+        <div className="mb-8">
+        <ProfileIcon userImage="" onClick={() => {}} />
       </div>
 
-      {/* Input fields for registration */}
-      <InputField
-        label="Name"
-        value={formData.name}
-        onChange={handleInputChange}
-      />
-      <InputField
-        label="Surname"
-        value={formData.surname}
-        onChange={handleInputChange}
-      />
-      <InputField
-        label="Email"
-        type="email"
-        value={formData.email}
-        onChange={handleInputChange}
-      />
 
-      <InputField
-        label="Password"
-        type="password"
-        value={formData.password}
-        onChange={handleInputChange}
-      />
+      {/* Input Fields */}
+      <div className="w-full max-w-xs flex flex-col gap-[1px]">
+        <InputField
+          label="Name"
+          value={formData.name}
+          onChange={handleInputChange}
+          variant="filled"
+        />
+        <InputField
+          label="Surname"
+          value={formData.surname}
+          onChange={handleInputChange}
+          variant="filled"
+        />
+        <InputField
+          label="Email"
+          type="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          variant="filled"
+        />
+        <InputField
+          label="Access code"
+          type="password"
+          value={formData.accessCode}
+          onChange={handleInputChange}
+          variant="filled"
+          showToggle
+        />
+        <InputField
+          label="Password"
+          type="password"
+          value={formData.password}
+          onChange={handleInputChange}
+          variant="filled"
+          showToggle
+        />
+      </div>
 
-      {/* Register button */}
+      {/* Sign up button */}
       <Button
         variant="contained"
-        color="primary"
         onClick={handleRegister}
         fullWidth
-        style={{ marginTop: '16px' }}
+        sx={{
+          maxWidth: '300px',
+          backgroundColor: '#2CB5A0',
+          borderRadius: '9999px',
+          textTransform: 'none',
+          fontWeight: 600,
+          fontSize: '1rem',
+          paddingY: '10px',
+          marginTop: '20px',
+          '&:hover': {
+            backgroundColor: '#239a89',
+          },
+        }}
       >
         Sign up
       </Button>
 
       {/* Log in link */}
-      <div style={{ marginTop: '12px', textAlign: 'center' }}>
-        <span>Already have an account? </span>
-        <a onClick={handleLoginRedirect} style={{ cursor: 'pointer' }}>
-          Log In
-        </a>
+      <div className="mt-3 text-sm text-gray-600">
+        <span className="mr-1">Already have an account?</span>
+        <span
+          className="text-gray-800 font-medium cursor-pointer"
+          onClick={handleLoginRedirect}
+        >
+          Log in
+        </span>
       </div>
     </div>
   );
 }
+
+
+

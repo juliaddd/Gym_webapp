@@ -32,49 +32,79 @@ export default function StartTrainingPage() {
 
 
 
+  
   return (
-    <div className="container">
-      {/* Back Button */}
-      <div className="back-button" onClick={handleBackClick} style={{ cursor: 'pointer', margin: '10px' }}>
+    <div className="min-h-screen w-full bg-white flex flex-col items-center justify-center px-4 pt-12 relative">
+
+      {/* Back button */}
+      <button
+        onClick={handleBackClick}
+        className="absolute top-4 left-4 text-gray-600"
+      >
         <ArrowBackIcon />
-        <span style={{ marginLeft: '5px' }}>Back</span>
-      </div>
+      </button>
 
-      {/* Training Category */}
-      <div className="header">
-        <h1>Training</h1>
-      </div>
-   
-      
-      {/* Timer Display */}
-      <div className="flex flex-col items-center mb-8">
-        <div className="mb-4">
-          <Image 
-            src={timerIcon} 
-            alt="Timer" 
-            width={100} 
-            height={100}
-            className="rounded-full"
-          />
-        </div>
-      </div>
+      {/* Category title (повышен вверх и центрирован) */}
+      <h2 className="absolute top-16 left-1/2 transform -translate-x-1/2 text-gray-800 text-xl font-bold">
+        {category?.name || category || 'Cardio'}
+      </h2>
 
-      {/* Start and Manual Entry buttons */}
-      <div className="buttons">
-        <Button
-          variant="contained"
-          onClick={handleStartClick}
-        >
-          Start
-        </Button>
-        <Button
-          variant="outlined"
-          category={category}
-          onClick={handleManualEntry}
-        >
-          Enter manually
-        </Button>
-      </div>
+      {/* Timer Icon */}
+      <Image
+        src={timerIcon}
+        alt="Timer"
+        width={140}
+        height={140}
+        className="mb-10"
+      />
+
+      {/* Start Button */}
+      <Button
+        variant="contained"
+        onClick={handleStartClick}
+        fullWidth
+        sx={{
+          maxWidth: '300px',
+          backgroundColor: '#2CB5A0',
+          borderRadius: '9999px',
+          textTransform: 'none',
+          fontWeight: 600,
+          fontSize: '1rem',
+          paddingY: '10px',
+          boxShadow: 'none',
+          '&:hover': {
+            backgroundColor: '#239a89',
+            boxShadow: 'none',
+          },
+          marginBottom: '20px',
+          marginTop: '30px',
+        }}
+      >
+        Start
+      </Button>
+
+      {/* Manual Entry Button */}
+      <Button
+        variant="outlined"
+        onClick={handleManualEntry}
+        fullWidth
+        sx={{
+          maxWidth: '300px',
+          borderRadius: '9999px',
+          textTransform: 'none',
+          fontWeight: 600,
+          fontSize: '1rem',
+          paddingY: '10px',
+          borderColor: '#B0B0B0',
+          color: '#444',
+          '&:hover': {
+            borderColor: '#999',
+            backgroundColor: '#f9f9f9',
+          },
+        }}
+      >
+        Enter manually
+      </Button>
     </div>
   );
 }
