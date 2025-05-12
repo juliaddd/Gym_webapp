@@ -67,7 +67,7 @@ export default function StartTrainingPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col items-center justify-center px-4 pt-12 relative">
+    <div className="min-h-screen w-full bg-[#fdf9f3] flex flex-col items-center justify-center px-4 pt-12 relative">
       {/* Back Button */}
       <button
         onClick={handleBackClick}
