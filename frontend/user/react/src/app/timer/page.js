@@ -23,16 +23,14 @@ export default function StartTrainingPage() {
   };
 
   const handleBackClick = () => {
-    router.push('/');
+    router.back();
   };
 
   const handleStartClick = () => {
     router.push('/timer_on');
   };
 
-
-
-  
+   
   return (
     <div className="min-h-screen w-full bg-[#fdf9f3] flex flex-col items-center justify-center px-4 pt-12 relative">
 
@@ -44,10 +42,8 @@ export default function StartTrainingPage() {
         <ArrowBackIcon />
       </button>
 
-      {/* Category title (повышен вверх и центрирован) */}
-      <h2 className="absolute top-16 left-1/2 transform -translate-x-1/2 text-gray-800 text-xl font-bold">
-        {category?.name || category || 'Cardio'}
-      </h2>
+      {/* Category title */}
+      
 
       {/* Timer Icon */}
       <Image

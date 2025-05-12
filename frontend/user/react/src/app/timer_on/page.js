@@ -109,9 +109,19 @@ export default function StartTrainingPage() {
 
 
      {/* Category title */}
-     <h2 className="absolute top-16 left-1/2 transform -translate-x-1/2 text-gray-800 text-xl font-bold">
-       {category?.name || 'Cardio'}
-     </h2>
+      {category && (
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            fontWeight: 600,
+            marginBottom: '30px',
+            textAlign: 'center',
+          }}
+        >
+          {category}
+        </Typography>
+      )}
 
 
      {/* Timer */}
