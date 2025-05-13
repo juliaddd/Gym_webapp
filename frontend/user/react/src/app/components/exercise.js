@@ -29,5 +29,6 @@ export default function ExerciseCard({ title, imageUrl, onClick }) {
         </div>
       </div>
     </div>
+    
   );
 }
