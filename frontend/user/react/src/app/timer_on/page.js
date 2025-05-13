@@ -7,7 +7,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Image from 'next/image';
 import timerIcon from '@/app/timericon.png';
 import { createTraining } from  '../../api';
-
+import Typography from '@mui/material/Typography';
 
 export default function StartTrainingPage() {
  const router = useRouter();
@@ -109,19 +109,22 @@ export default function StartTrainingPage() {
 
 
      {/* Category title */}
-      {category && (
+     {category && (
         <Typography
-          variant="h4"
-          component="h1"
-          sx={{
-            fontWeight: 600,
-            marginBottom: '30px',
-            textAlign: 'center',
-          }}
-        >
-          {category}
-        </Typography>
-      )}
+        variant="h4"
+        component="h1"
+        sx={{
+          fontWeight: 600,
+          position: 'absolute',
+          top: '20px',
+          textAlign: 'center',
+        }}
+      >
+        {category.title}
+      </Typography>
+    )}
+
+
 
 
      {/* Timer */}

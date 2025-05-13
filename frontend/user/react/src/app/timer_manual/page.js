@@ -77,19 +77,20 @@ export default function StartTrainingPage() {
       </button>
 
       {/* Category title */}
-      {category && (
+     {category && (
         <Typography
-          variant="h4"
-          component="h1"
-          sx={{
-            fontWeight: 600,
-            marginBottom: '30px',
-            textAlign: 'center',
-          }}
-        >
-          {category}
-        </Typography>
-      )}
+        variant="h4"
+        component="h1"
+        sx={{
+          fontWeight: 600,
+          position: 'absolute',
+          top: '20px',
+          textAlign: 'center',
+        }}
+      >
+        {category.title}
+      </Typography>
+    )}
 
       {/* Timer inputs */}
       <div className="flex gap-6 mt-20 mb-12">
