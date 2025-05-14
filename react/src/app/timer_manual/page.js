@@ -27,7 +27,12 @@ export default function StartTrainingPage() {
   };
 
   const handleTimeChange = (e, type) => {
-    setManualTime((prev) => ({ ...prev, [type]: e.target.value }));
+    const value = e.target.value;
+    
+    // Only allow positive numbers or empty string
+    if (value === '' || (parseInt(value) >= 0 && !value.includes('-'))) {
+      setManualTime((prev) => ({ ...prev, [type]: value }));
+    }
   };
 
   const handleSave = async () => {
@@ -95,16 +100,22 @@ export default function StartTrainingPage() {
       {/* Timer inputs */}
       <div className="flex gap-6 mt-20 mb-12">
         <input
-          type="number"
-          
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          min="0"
+          placeholder="0"
           value={manualTime.hours}
           onChange={(e) => handleTimeChange(e, 'hours')}
           className="w-28 h-20 text-3xl text-center border rounded-xl shadow"
         />
         <span className="text-4xl font-bold flex items-center justify-center">:</span>
         <input
-          type="number"
-          
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          min="0"
+          placeholder="0"
           value={manualTime.minutes}
           onChange={(e) => handleTimeChange(e, 'minutes')}
           className="w-28 h-20 text-3xl text-center border rounded-xl shadow"
@@ -157,12 +168,20 @@ export default function StartTrainingPage() {
       >
         Cancel
       </Button>
+
+      <style jsx global>{`
+        /* Hide spinner buttons for number inputs */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        
+        /* Firefox */
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+      `}</style>
     </div>
   );
 }
-
-
-
-
-
-
