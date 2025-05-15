@@ -41,7 +41,21 @@ export default function StartTrainingPage() {
       >
         <ArrowBackIcon />
       </button>
-      
+      {/* Category title */}
+    {category && (
+       <Typography
+       variant="h4"
+       component="h1"
+       sx={{
+         fontWeight: 600,
+         position: 'absolute',
+         top: '20px',
+         textAlign: 'center',
+       }}
+     >
+       {category.title}
+     </Typography>
+   )}
       {/* Timer Icon */}
       <Image
         src={timerIcon}

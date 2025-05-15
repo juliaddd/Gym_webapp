@@ -64,7 +64,7 @@ export default function StartTrainingPage() {
 
       await createTraining(trainingData);
       alert(`Training recorded: ${totalMinutes} min`);
-      router.push('/');
+      router.push('/usermain');
     } catch (error) {
       console.error('Error. Could not create training:', error);
       alert('Error. Could not save training.');

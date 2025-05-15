@@ -65,10 +65,10 @@ export default function StartTrainingPage() {
 
  const handleSave = async () =>{
    alert(`Recorded time: ${timeElapsed} seconds (${timeLabel})`);
-   if ( timeElapsed === 0) {
-     alert('Please start a timer');
-     return;
-   }
+   if (timeElapsed < 60) {
+    alert('Training must be at least 1 minute long to save');
+    return;
+  }
    const timeInMinutes = Math.round(timeElapsed / 60);
    try {
      const userId = localStorage.getItem('user_id');
@@ -82,7 +82,7 @@ export default function StartTrainingPage() {
      };
       await createTraining(trainingData);
       alert(`Training recorded: ${timeInMinutes} min`);
-     router.push('/');
+     router.push('/usermain');
    } catch (error) {
      console.error('Error. Could not create training:', error);
      alert('Error. Could not save trainig.');
