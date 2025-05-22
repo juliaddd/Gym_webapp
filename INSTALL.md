@@ -51,3 +51,7 @@ Follow these steps to install and run the project locally:
         ```
 
 After completing these steps, the project should be running locally.
+
+For accessing an existing Admin accout you can enter following data
+login: bigandscary@gmail.com
+password: ADMINcool1
