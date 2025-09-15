@@ -8,9 +8,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import date
 
-
+# Creating a new training for user 
 def create_training(db: Session, training: TrainingCreate):
-
     user = db.query(UserDB).filter(UserDB.user_id == training.user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -34,7 +33,7 @@ def create_training(db: Session, training: TrainingCreate):
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
 
-
+# Gets trainig statistics (time in minutes) for each category (all users or specific user) for period of time [from ... to]
 def get_stats_by_category(db: Session, user_id: Optional[int], date_from: date, date_to: date):
     query = (
     db.query(
@@ -60,6 +59,7 @@ def get_stats_by_category(db: Session, user_id: Optional[int], date_from: date, 
     for row in results
 ]
 
+# Gets training time for a user (all trainings) by categories
 def get_stats_all_time(db: Session, user_id: int):
     results = (
         db.query(
@@ -82,9 +82,7 @@ def get_total_training_time( db: Session, user_id: Optional[int], date_from: dat
         query = query.filter(TrainingDB.user_id == user_id)
 
     query = query.filter(TrainingDB.date.between(date_from, date_to))
-
     total_time = query.scalar() or 0
-
     return TotalTimeResponse(total_training_time=total_time)
 
 
@@ -120,7 +118,7 @@ from sqlalchemy import select, func
 
 
 def get_time_by_day_of_week(db: Session, user_id: Optional[int], date_from: str, date_to: str):
-    # Построение базового запроса
+    # Basic querry 
     query = (
         select(
             func.dayofweek(TrainingDB.date).label('day_num'),
@@ -130,11 +128,9 @@ def get_time_by_day_of_week(db: Session, user_id: Optional[int], date_from: str,
         .where(TrainingDB.date <= date_to)
     )
     
-    # Добавляем фильтр по user_id только если он не None
     if user_id is not None:
         query = query.where(TrainingDB.user_id == user_id)
     
-    # Группировка по дням недели
     query = query.group_by('day_num')
 
     results = db.execute(query).all()
@@ -155,12 +151,8 @@ def get_time_by_day_of_week(db: Session, user_id: Optional[int], date_from: str,
         for day, total_training_time in stats_dict.items()
     ]
 
+# Get statistics on training time by subscription type over time. Groups by month and subscription type.
 def get_stats_by_subscription_over_time(db: Session, user_id: Optional[int], start_date: date, end_date: date):
-    """
-    Get statistics on training time by subscription type over time.
-    Groups by month and subscription type.
-    """
-    # Построение базового запроса
     query = (
         db.query(
             func.date_format(TrainingDB.date, '%Y-%m').label("month_year"),
@@ -171,14 +163,11 @@ def get_stats_by_subscription_over_time(db: Session, user_id: Optional[int], sta
         .filter(TrainingDB.date.between(start_date, end_date))
     )
     
-    # Добавление фильтра по user_id, если он указан
     if user_id:
         query = query.filter(TrainingDB.user_id == user_id)
     
-    # Группировка по месяцу и типу подписки
     results = query.group_by("month_year", UserDB.subscription_type).all()
     
-    # Форматирование результатов
     return [
         {
             "month_year": row.month_year,

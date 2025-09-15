@@ -69,7 +69,7 @@ export default function AddUserForm({ formData, onChange, onSubmit, buttonText =
       newErrors.email = "Please enter a valid email address";
     }
 
-    // Добавляем phoneRegex здесь
+    //  phoneRegex for phone validation
     const phoneRegex = /^\+(\d{1,4})\s?(\d{1,12})(\s?\d{1,2})?$/;
     if (userData.phone) {
       const phoneErrors = [];
@@ -106,7 +106,7 @@ export default function AddUserForm({ formData, onChange, onSubmit, buttonText =
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-      {/* Добавить отображение общей ошибки, если она есть */}
+      {/* general error */}
       {errors.general && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {errors.general}

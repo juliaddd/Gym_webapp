@@ -2,10 +2,10 @@
 -- version 5.1.1deb5ubuntu1
 -- https://www.phpmyadmin.net/
 --
--- Хост: localhost:3306
--- Время создания: Апр 23 2025 г., 19:24
--- Версия сервера: 10.6.21-MariaDB-0ubuntu0.22.04.2
--- Версия PHP: 8.1.2-1ubuntu2.21
+-- Host: localhost:3306
+-- Generation Time: Sep 15, 2025 at 02:24 PM
+-- Server version: 10.6.22-MariaDB-0ubuntu0.22.04.1
+-- PHP Version: 8.1.2-1ubuntu2.21
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -16,11 +16,15 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
--- База данных: `webapp`
-
+--
+-- Database: `webapp`
+--
 -- --------------------------------------------------------
 
--- Структура таблицы `Category`
+--
+-- Table structure for table `Category`
+--
+
 CREATE TABLE IF NOT EXISTS `Category` (
   `category_id` int(11) NOT NULL,
   `name` varchar(15) NOT NULL,
@@ -29,7 +33,9 @@ CREATE TABLE IF NOT EXISTS `Category` (
 
 -- --------------------------------------------------------
 
--- Структура таблицы `Training`
+--
+-- Table structure for table `Training`
+--
 CREATE TABLE IF NOT EXISTS `Training` (
   `training_id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
@@ -43,7 +49,9 @@ CREATE TABLE IF NOT EXISTS `Training` (
 
 -- --------------------------------------------------------
 
--- Структура таблицы `User`
+--
+-- Table structure for table `User`
+--
 CREATE TABLE IF NOT EXISTS `User` (
   `user_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -58,23 +66,33 @@ CREATE TABLE IF NOT EXISTS `User` (
   UNIQUE KEY `unique_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- AUTO_INCREMENT для сохранённых таблиц
 
--- AUTO_INCREMENT для таблицы `Category`
+
+--
+-- AUTO_INCREMENT for table `Category`
+--
 ALTER TABLE `Category`
   MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT;
 
--- AUTO_INCREMENT для таблицы `Training`
+--
+-- AUTO_INCREMENT for table `Training`
+--
 ALTER TABLE `Training`
   MODIFY `training_id` int(11) NOT NULL AUTO_INCREMENT;
 
--- AUTO_INCREMENT для таблицы `User`
+--
+-- AUTO_INCREMENT for table `User`
+--
 ALTER TABLE `User`
   MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
--- Ограничения внешнего ключа сохранённых таблиц
+--
+-- Constraints for dumped tables
+--
 
--- Ограничения внешнего ключа таблицы `Training`
+--
+-- Constraints for table `Training`
+--
 ALTER TABLE `Training`
   ADD CONSTRAINT `Training_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`),
   ADD CONSTRAINT `Training_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `Category` (`category_id`);

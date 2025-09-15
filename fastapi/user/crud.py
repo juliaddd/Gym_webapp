@@ -9,16 +9,20 @@ import logging
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
+# logger for debug
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-#   PASSWORD SECURITY 
+
+
+#  PASSWORD SECURITY 
 PASSWORD_MIN_LENGTH = 8
 PASSWORD_MAX_LENGTH = 64
 
+# passwords hashing
 pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto",
-    bcrypt__rounds=12
+    schemes=["bcrypt"], #algorithm
+    deprecated="auto", #automatic update
+    bcrypt__rounds=12 #hashing rounds
 )
 
 def hash_password(password: str) -> str:
@@ -38,10 +42,14 @@ def validate_password_complexity(v: str) -> str:
         raise ValueError("Password must contain at least one digit")
     return v
 
+
+
 def validate_phone_number_format(phone: str) -> str:
     if not re.fullmatch(r"\+(\d{1,4})\s?(\d{1,12})(\s?\d{1,2})?$", phone):
         raise ValueError("Phone number must start with '+' followed by up to 14 digits (max 15 characters total)")
     return phone
+
+
 
 def create_user(db: Session, user: UserCreate):
     db_user = db.query(UserDB).filter(UserDB.email == user.email).first()
@@ -150,7 +158,6 @@ def update_user( db: Session, user_id: int, user: UserUpdate):
 def get_user_counts_by_sub(db: Session, year=None):
     logger.debug(f"Fetching user counts by subscription type for year: {year}")
     try:
-        # Базовый запрос
         query = (
             db.query(
                 UserDB.subscription_type,
@@ -159,9 +166,7 @@ def get_user_counts_by_sub(db: Session, year=None):
             .group_by(UserDB.subscription_type)
         )
         
-        # Если год указан, добавляем фильтр по году
         if year:
-            # Используем дату создания пользователя
             from sqlalchemy import extract
             query = query.filter(extract('year', UserDB.created_at) <= year)
         

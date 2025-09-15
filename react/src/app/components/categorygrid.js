@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import ExerciseCard from './exercise'; // Импортируем компонент карточки
+import ExerciseCard from './exercise';
 
 export default function CategoryGrid({categories, onCategorySelect }) {
 

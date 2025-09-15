@@ -19,6 +19,7 @@ export default function ProfilePage() {
     repeatPassword: '',
   });
 
+  // client side password validation
   function validatePasswordComplexity(password) {
     const minLength = 8;
     const maxLength = 64;
@@ -36,7 +37,7 @@ export default function ProfilePage() {
       return "Password must contain at least one digit.";
     }
   
-    return null; // null означает, что всё ок
+    return null; // null if everything ok
   }
 
   function validatePhoneNumber(phone) {
@@ -46,7 +47,7 @@ export default function ProfilePage() {
       return "Phone number must start with '+' and contain up to 15 digits total.";
     }
   
-    return null; // null означает, что номер валиден
+    return null; 
   }
 
 
@@ -99,7 +100,7 @@ export default function ProfilePage() {
       alert(phoneError);
       return;
     }
-    // Собираем данные для отправки
+    // formating data for sending to server
     const updatedData = {
       name: updatedFormData.name,
       surname: updatedFormData.surname,
@@ -125,9 +126,9 @@ export default function ProfilePage() {
     }
   };
 
-  // Handle back button click (navigating to the main page)
+  // 
   const handleGoBack = () => {
-    router.back(); // Go back to the previous page
+    router.back(); // go back to the previous page ( not explicit routering)
   };
 
   return (

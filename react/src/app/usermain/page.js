@@ -60,20 +60,20 @@ export default function UserMainPage() {
           throw new Error('User ID not found in localStorage');
         }
 
-        // Определяем понедельник текущей недели
+      // current day of week
       const today = new Date();
-      const dayOfWeek = today.getDay(); // воскресенье — 0, понедельник — 1, ..., суббота — 6
-      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // если воскресенье — идем назад на 6 дней
+      const dayOfWeek = today.getDay(); // sunday — 0, monday — 1
+      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // if sun - go 6 days back
       const monday = new Date(today);
       monday.setDate(today.getDate() + diffToMonday);
       monday.setHours(0, 0, 0, 0);
 
-      // Воскресенье текущей недели — прибавим 6 дней от понедельника
+      // to get sunday we add 6 to monday
       const sunday = new Date(monday);
       sunday.setDate(monday.getDate() + 6);
       sunday.setHours(23, 59, 59, 999);
 
-      // Преобразуем в строки
+      // convert to strings
       const dateFrom = monday.toISOString().split('T')[0];
       const dateTo = sunday.toISOString().split('T')[0];
       const stats = await fetchStatsByDayOfWeek(userId, dateFrom, dateTo);
@@ -83,7 +83,7 @@ export default function UserMainPage() {
         console.log('Formatted Stats for Chart:', stats);
       } catch (error) {
         console.error('Error fetching statistics:', error);
-        // Если ошибка, можно показать заглушку
+        // dummy
         setStatistics([
           { day: 'Monday', value: 0 },
           { day: 'Tuesday', value: 0 },

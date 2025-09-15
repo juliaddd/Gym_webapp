@@ -32,7 +32,6 @@ app.add_middleware(
 
 
 # LOGIN
-
 @app.post("/login", response_model=dict)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     token = login_user(db, form_data.username, form_data.password)
@@ -122,6 +121,8 @@ def update_user(user_id: int, user: user_schemas.UserUpdate, db: Session = Depen
 def delete_user(user_id: int, db: Session = Depends(get_db), current_user: user_schemas.UserResponse = Depends(is_admin_user)):
     return user_crud.delete_user(db, user_id)
 
+
+
 # Categories CRUD Operations
 # NOTE: categories are predefined in database and can't be modyfied so I don't write all crud operations
 
@@ -137,6 +138,8 @@ def read_category(
     db: Session = Depends(get_db)
 ):
     return category_crud.get_category(db, category_id)
+
+
 
 # Training CRUD Operations
 @app.post(

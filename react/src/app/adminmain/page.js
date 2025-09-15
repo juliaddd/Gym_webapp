@@ -38,15 +38,19 @@ export default function AdminMainPage() {
   });
 
   useEffect(() => {
+    // Prevents state updates after component unmounts
       let isMounted = true;
   
+      // Load current user data from localStorage and API
       const loadUser = async () => {
         try {
           const userId = localStorage.getItem('user_id');
           const token = localStorage.getItem('token');
   
+
+          // Redirect to login if no auth data
           if (!userId || !token) {
-            router.push('/login');
+            router.push('/');
             return;
           }
   
@@ -56,20 +60,23 @@ export default function AdminMainPage() {
             name: `${userData.name} ${userData.surname || ''}`.trim(),
           });
   
+          // Only update if component is still mounted
           if (isMounted) setUser(userData);
         } catch (error) {
           console.error('Failed to load user:', error);
-          router.push('/login');
+          router.push('/');
         }
       };
 
       const loadStatData = async () => {
+        // Get all-time stats (from 2000 to today)
         const allTimeFrom = '2000-01-01';
         const today = new Date().toISOString().split('T')[0];
 
         const data = await fetchStatsByCategory(null, allTimeFrom, today);
         const allCategories = await fetchCategories() || [];
 
+        // Transform data: combine categories with their stats
         const transformedData = allCategories.map(category => {
         const categoryData = data.find(item => item.category_id === category.category_id);
         return {
@@ -78,14 +85,16 @@ export default function AdminMainPage() {
         };
         });
 
+        // Format data for chart (reusing day_of_week field for category names)
         setChartData(
           transformedData.map(item => ({
-          day_of_week: item.category_name, // подсовываем в поле, которое ожидает график
+          day_of_week: item.category_name, //repurpose field for category names
           total_training_time: item.total_training_time,
         })));
 
       };
 
+    
       const loadUsers = async () => {
         const data = await fetchUsers();
         setUsersData(data);
@@ -97,7 +106,7 @@ export default function AdminMainPage() {
       loadUser();
   
       return () => { isMounted = false; };
-    }, []);
+    }, []); // Empty dependency array = run once on mount
 
 
   const toggleShowFilter = () => setShowFilter(!showFilter);
@@ -128,7 +137,7 @@ export default function AdminMainPage() {
       return "Phone number must start with '+' and contain up to 15 digits total.";
     }
   
-    return null; // null означает, что номер валиден
+    return null; // null if number is valid
   }
   const isValidEmail = (email) => {
     return /\S+@\S+\.\S+/.test(email);
@@ -138,7 +147,7 @@ export default function AdminMainPage() {
   const handleSaveUser = async (updatedUser) => {
     setServerErrors({});
     try {
-      // Валидация на стороне клиента
+      // client side validation 
       if (!isValidEmail(updatedUser.email)) {
         setServerErrors({ email: 'Please enter valid email (ex: user@example.com)' });
         return;
@@ -150,10 +159,9 @@ export default function AdminMainPage() {
         return;
       }
       
-      // Отправка запроса
       const savedUser = await updateUser(updatedUser.user_id, updatedUser);
   
-      // Обновление интерфейса при успехе
+      // updating view
       setUsersData((prev) =>
         prev.map((user) =>
           user.user_id === savedUser.user_id ? savedUser : user
@@ -164,12 +172,10 @@ export default function AdminMainPage() {
     } catch (error) {
       console.error('Error. Could not update user data:', error);
       
-      // Для отладки
-      console.log('Ошибка:', JSON.stringify(error));
+      console.log('Error:', JSON.stringify(error));
       
-      // Обработка ошибок с сервера
+      // handling server errors
       if (error.response && error.response.data) {
-        // Если сервер возвращает структурированный ответ
         const errorData = error.response.data;
         
         if (errorData.detail && errorData.detail.includes('Duplicate entry') && errorData.detail.includes('unique_email')) {
@@ -178,20 +184,17 @@ export default function AdminMainPage() {
             general: 'Failed to update user: Email already exists' 
           });
         } else if (errorData.message) {
-          // Общая ошибка с сообщением
           setServerErrors({ general: errorData.message });
         } else {
-          // Общая ошибка без структуры
           setServerErrors({ general: `Failed to update user: ${error.message || 'Unknown error'}` });
         }
       } else if (error.message && error.message.includes('Duplicate entry') && error.message.includes('unique_email')) {
-        // Обработка текста ошибки SQL
         setServerErrors({ 
           email: 'This email is already registered in the system. Please use a different email.',
           general: 'Failed to update user: Email already exists' 
         });
       } else {
-        // Общая ошибка
+        // general error
         setServerErrors({ 
           general: `Failed to update user: ${error.message || 'Unknown error'}` 
         });
@@ -199,7 +202,7 @@ export default function AdminMainPage() {
     }
   };
   
-  // Обработчик удаления пользователя
+  // deleting error
   const handleDeleteUser = async (userId) => {
     try {
       await deleteUser(userId);

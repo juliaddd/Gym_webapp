@@ -37,7 +37,6 @@ export default function StatisticsChart({ data, onClick, width, height, units = 
   if (!data || !Array.isArray(data)) return <div>No data available</div>;
   return (
     <div className="container mx-auto px-4 py-8" style={{ width: width, height: height }}>
-      {/* Отображаем график */}
       <div className="mb-4">
         <Bar data={chartData} options={options} />
       </div>

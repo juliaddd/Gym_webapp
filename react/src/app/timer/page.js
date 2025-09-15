@@ -1,7 +1,5 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import ProfileIcon from '@/app/components/profileicon';
-import timerIcon from '@/app/timericon.png';
 import { Button, Typography } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Image from 'next/image';
@@ -58,7 +56,7 @@ export default function StartTrainingPage() {
    )}
       {/* Timer Icon */}
       <Image
-        src={timerIcon}
+        src="/images/timericon.png"
         alt="Timer"
         width={140}
         height={140}

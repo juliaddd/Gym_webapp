@@ -5,16 +5,20 @@ import jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from user.crud import get_user_by_email
+
 # This is the configuration for generating token hash
 SECRET_KEY = "18f414a668ad1e0d5b3d9d3f9d46e0ec4bc5ee38453989d434b51d529cf9e7d0"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
 # DTO for token
 class Token(BaseModel):
     access_token: str
     token_type: str
+
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 # Token creation
 def create_access_token(data: dict, expires_delta: timedelta):
     to_encode = data.copy()
@@ -44,6 +48,8 @@ from user.schemas import UserResponse
 from database import get_db
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
+# functions to check user and users role
+# used in main.py
 async def is_valid_user(
     db: Annotated[Session, Depends(get_db)],
     token: Annotated[str, Depends(oauth2_scheme)]

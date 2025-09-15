@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BasicBarChart, StackedCategoryChart, SubscriptionLineChart } from '@/app/components/ChartComponents';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ProfileIcon from '@/app/components/profileicon';
+
 import {
   fetchStatsByCategory,
   fetchTotalTrainingTime,

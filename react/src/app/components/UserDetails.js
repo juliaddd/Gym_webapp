@@ -21,21 +21,21 @@ export default function UserDetails({
   showConfirmDelete,
   setShowConfirmDelete,
   setSelectedUserId,
-  onSave, // Новый проп для сохранения изменений
-  onDelete, // Новый проп для удаления пользователя
+  onSave, // prop for changes
+  onDelete, // prop for deleting usesr
   serverErrors = {}
 }) {
   const [errors, setErrors] = useState({})
 
 
-  // Синхронизация editableUser с selectedUser
+  // synx editableUser с selectedUser
   useEffect(() => {
     if (selectedUser) {
       setEditableUser(selectedUser);
     }
   }, [selectedUser, setEditableUser]);
 
-  // Обработка серверных ошибок
+  // server errors handling
   useEffect(() => {
     if (Object.keys(serverErrors).length > 0) {
       setErrors(serverErrors);
@@ -56,7 +56,7 @@ export default function UserDetails({
     const { name, value } = e.target;
     setEditableUser((prev) => ({ ...prev, [name]: value }));
     
-    // Очищаем ошибку для поля при его изменении
+    // clear error for field on change
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -68,16 +68,13 @@ export default function UserDetails({
 
 
   const handleSave = () => {
-    // Простая базовая валидация только для email и телефона
     const newErrors = {};
-    
-    // Валидация email
+    // validation
     const emailRegex = /\S+@\S+\.\S+/;
     if (editableUser.email && !emailRegex.test(editableUser.email)) {
       newErrors.email = 'Please enter a valid email (ex: user@example.com)';
     }
-    
-    // Валидация телефона
+  
     const phoneRegex = /^\+(\d{1,4})\s?(\d{1,12})(\s?\d{1,2})?$/;
     if (editableUser.phone_number && !phoneRegex.test(editableUser.phone_number)) {
       newErrors.phone_number = "Phone number must start with '+' and contain digits";
@@ -95,7 +92,7 @@ export default function UserDetails({
 
   const handleDelete = () => {
     if (onDelete) {
-      onDelete(selectedUser.user_id); // Уведомляем родительский компонент об удалении
+      onDelete(selectedUser.user_id); // informing parent about deleting
     }
     setShowConfirmDelete(false);
     setSelectedUserId(null);
@@ -103,9 +100,6 @@ export default function UserDetails({
 
   return (
     <div className="h-3/5 w-5/5 bg-gray-100 p-4 rounded-xl shadow flex flex-col gap-4 overflow-y-auto  mt-15">
-       {/* Показываем общую ошибку, если она есть */}
- {/* Красиво отформатированная общая ошибка */}
-
       <div className="flex justify-between items-start">
         <ProfileIcon /> {}
         <div className="flex gap-2 items-center">

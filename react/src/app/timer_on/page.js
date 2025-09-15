@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Image from 'next/image';
-import timerIcon from '@/app/timericon.png';
 import { createTraining } from  '../../api';
 import Typography from '@mui/material/Typography';
 

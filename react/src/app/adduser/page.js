@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import AddUserForm from '@/app/components/adduser_form'; // Your new component
+import AddUserForm from '@/app/components/adduser_form';
 import ProfileIcon from '@/app/components/profileicon';
 import DropdownSelect from '@/app/components/DropdownSelect';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -57,12 +57,12 @@ export default function AddUserPage() {
   const [serverErrors, setServerErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-const handleCreateUser = async (userData) => {
+  const handleCreateUser = async (userData) => {
   setIsSubmitting(true);
   setServerErrors({});
   
   try {
-    // Правильная подготовка данных для API
+    // preparing data for api
     const apiData = {
       name: userData.name,
       surname: userData.surname,
@@ -76,19 +76,18 @@ const handleCreateUser = async (userData) => {
     
     console.log('Creating user with data:', apiData);
     
-    // Вызов API
+    // calling API
     const response = await createUser(apiData);
     console.log('User created successfully:', response);
     
-    // Показ успешного сообщения
     alert('User created successfully!');
     
-    // Перенаправление на админскую страницу
+    // routing to return to admin main page
     router.push('/adminmain');
   } catch (error) {
     console.error('Error creating user:', error);
     
-    // Обработка конкретных ошибок от сервера
+    // handlong errors
     if (error.message.includes('Email already registered')) {
       setServerErrors({
         email: 'This email is already registered in the system. Please use a different email.'
@@ -98,7 +97,7 @@ const handleCreateUser = async (userData) => {
         phone: 'Invalid phone number format. It must start with "+" followed by country code and digits.'
       });
     } else {
-      // Общая ошибка
+      // general error
       setServerErrors({
         general: `Failed to create user: ${error.message}`
       });
@@ -140,7 +139,6 @@ const handleGoBack = () => {
       {serverErrors.general}
     </Alert>
   )}
-          {/* Использование компонента DropdownSelect */}
           <DropdownSelect
             id="subscription-type"
             label="Subscription Type"
@@ -157,7 +155,6 @@ const handleGoBack = () => {
             onChange={handleRoleChange}
           />
           
-          {/* Add User Form with onSubmit prop */}
           <AddUserForm 
             formData={formData} 
             onChange={handleFormChange}

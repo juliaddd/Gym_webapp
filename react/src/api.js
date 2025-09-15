@@ -67,6 +67,7 @@ export const fetchUserById = async (userId) => {
         throw error;
     }
 };
+
 // User login
 export const loginUser = async (credentials) => {
     try {
@@ -94,7 +95,6 @@ export const fetchUserStatsBySubscription = async (year = null) => {
         const token = localStorage.getItem('token');
         let url = `${apiBaseUrl}/users/stats/subscriptions`;
         
-        // Добавляем параметр года, если он указан
         if (year !== null) {
             url += `?year=${year}`;
         }

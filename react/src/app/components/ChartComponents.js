@@ -8,7 +8,6 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
 // Component for Basic Bar Chart - used for Category and Weekly stats
-// Обновите компонент BasicBarChart в ChartComponents.js
 export const BasicBarChart = ({ 
   title, 
   data, 
@@ -20,7 +19,7 @@ export const BasicBarChart = ({
   offset,
   setOffset,
   disableNext = false,
-  minYAxis = null  // Новый параметр
+  minYAxis = null
 }) => {
   if (isLoading) {
     return (
@@ -31,12 +30,12 @@ export const BasicBarChart = ({
     );
   }
 
-  // Определяем, есть ли ненулевые данные
+  // checking for not null data
   const hasNonZeroValues = data && 
   Array.isArray(data) && 
   data.some(item => item[dataKey] > 0);
 
-// Устанавливаем фиксированный диапазон для оси Y, если все значения равны нулю
+// setting a fixed diaposon for Y acis if all values are 0
 const yAxisProps = !hasNonZeroValues ? { domain: [0, 5] } : {};
 
   return (
@@ -245,7 +244,7 @@ export const SubscriptionLineChart = ({
     subscriptionTypes = [...new Set(data.map(item => item.subscription_type))];
   }
 
-  // Уникальные месяцы для оси X
+  // unique monthes for X
   const uniqueMonths = [...new Set(data.map(item => item.monthYear))];
   
   return (
@@ -259,7 +258,6 @@ export const SubscriptionLineChart = ({
               dataKey="monthYear" 
               type="category" 
               allowDuplicatedCategory={false}
-              // Используем только уникальные месяцы для оси X
               data={uniqueMonths.map(month => ({ monthYear: month }))}
             />
             <YAxis label={{ value: 'Training Hours', angle: -90, position: 'insideLeft' }} />
