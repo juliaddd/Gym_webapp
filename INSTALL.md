@@ -1,65 +1,45 @@
 # Installation Instructions
 
-Follow these steps to install and run the project locally:
+Follow these steps to install and run the project using Docker:
 
 1. **Clone the Repository**
-           
-   ```
-   git clone https://github.com/juliaddd/Gym_webapp.git
-   ```
-        cd Gym_webapp
 
+    ```
+    git clone https://github.com/juliaddd/Gym_webapp.git
+    cd Gym_webapp
+    ```
+2.  **Configure `.env` File**
 
-3.  **Database Setup:**
-    1. Create a new database (e.g., webapp) using phpMyAdmin
-    2. Import the schema and seed data:
-
-        - Category.sql
-        - User.sql
-        - Training.sql
-
-    3. Configure the `webapp` user with CRUD privileges for this database.
-    4. Create `.env` file and set your database password:
+    Create a .env file in the root directory and set up the following variables:
     
-     `SQLALCHEMY_DATABASE_URL = "mysql+pymysql://webapp:PASSWORD@localhost/webapp"`.
+     ```
+    # Database connection URL for FastAPI
+    SQLALCHEMY_DATABASE_URL=mysql+pymysql://webapp:yourpassword@db:3306/webapp
 
-4.  **Backend (FastAPI) Setup and Run:**
+    # Database credentials for MariaDB service
+    MYSQL_ROOT_PASSWORD=yourrootpassword
+    MYSQL_DATABASE=webapp
+    MYSQL_USER=webapp
+    MYSQL_PASSWORD=yourpassword
+    ```
 
-    1. Create a virtual environment:
-        ```
-        python -m venv .venv
-        ```
-    2. Activate the virtual environment:
-        * Windows: `.venv\Scripts\activate`
-        * macOS/Linux: `source .venv/bin/activate`
-    3. Install dependencies:
-        ```
-        pip install -r requirements.txt
-        ```
-    4. Navigate to the `fastapi` directory:
-        ```
-        cd fastapi
-        ```
-    5. Run the FastAPI server:
-        ```
-        fastapi dev main.py
-        ```
+    Replace yourpassword and yourrootpassword with your actual passwords.
 
-5.  **Frontend (React) Setup and Run:**
-    1. Navigate to the `react` directory:
-        ```
-        cd react
-        ```
-    2. Install dependencies:
-        ```
-        npm install
-        ```
-    3. Run the React application:
-        ```
-        npm run dev
-        ```
+3.  **Docker Setup and Run**
 
-    After completing these steps, react app will run at http://localhost:3000.
+    Make sure you have Docker and Docker Compose installed.
+
+    Build and run the containers
+    ```
+    docker-compose up --build
+    ```
+    
+4.  **Access the Application**
+    
+    After successfully building the containers, you can access the application through your browser:
+
+    - Frontend (React): http://localhost:3000
+    - Backend (FastAPI): http://localhost:8000
 
 6. **Test Credentials**
 
@@ -70,5 +50,12 @@ Follow these steps to install and run the project locally:
 
 
 
-    After logging in admin acount you can  create a new user and try out user features.
-    Last training data update was 08.09.2025 - 15.09.2025. If you want to see charts, scroll to this dates.
+    After logging into the admin account, you can create a new user and try out user features.
+The last training data update was from 08.09.2025 to 15.09.2025. To see charts, select this date range.
+
+6. **Stopping the Application**
+
+    To stop the application, use:
+    ```
+    docker-compose down
+    ```

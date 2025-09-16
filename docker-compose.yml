@@ -1,0 +1,44 @@
+services:
+  backend:
+    build: ./fastapi
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - ./fastapi:/app
+    restart: unless-stopped
+
+  frontend:
+    build: ./react
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./react:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+
+  db:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: webapp
+      MYSQL_USER: webapp
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./fastapi/Category.sql:/docker-entrypoint-initdb.d/1.sql
+      - ./fastapi/User.sql:/docker-entrypoint-initdb.d/2.sql
+      - ./fastapi/Training.sql:/docker-entrypoint-initdb.d/3.sql
+    restart: unless-stopped
+
+volumes:
+  mariadb_data:

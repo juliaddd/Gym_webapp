@@ -4,6 +4,7 @@ import InputField from '@/app/components/inputfield'; // Assuming InputField is 
 import ProfileIcon from '@/app/components/profileicon'; // The ProfileIcon component
 import Button from '@mui/material/Button';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { loginUser, fetchUserById } from '../api';
 
 export default function LoginPage({ onLogin }) {
@@ -164,9 +165,11 @@ return (
             alignItems: 'center',
           }}
         >
-          <img
+          <Image
             src="/images/gym.png"
             alt="Barbell"
+            width={500}   // Specify a width (required)
+            height={300}  // Specify a height (required)
             style={{ maxWidth: '100%', height: 'auto' }}
           />
         </div>

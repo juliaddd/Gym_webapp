@@ -106,7 +106,7 @@ export default function AdminMainPage() {
       loadUser();
   
       return () => { isMounted = false; };
-    }, []); // Empty dependency array = run once on mount
+    }, [router]); // Empty dependency array = run once on mount
 
 
   const toggleShowFilter = () => setShowFilter(!showFilter);

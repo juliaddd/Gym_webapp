@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import Image from 'next/image';
+
 
 export default function ExerciseCard({ title, imageUrl, onClick }) {
   const [imageError, setImageError] = useState(false);
@@ -15,9 +17,11 @@ export default function ExerciseCard({ title, imageUrl, onClick }) {
       onClick={onClick}
     >
       <div className="w-full overflow-hidden" style={{ height: '250px' }}>
-        <img 
+        <Image 
           src={imageError ? defaultImage : imageUrl} 
           alt={title} 
+          width={250}
+          height={250}
           className="w-full h-full object-cover transition-transform duration-500 ease-in-out hover:scale-110" 
           onError={handleImageError}
         />

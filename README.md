@@ -25,6 +25,7 @@ I contributed to both **backend** and **frontend** development, including:
   -  **Backend**: Implemented CRUD operations for users, trainings, and categories, created Pydantic schemas, and developed REST APIs  
   - **Integration**: Integrated APIs into frontend
   - **Frontend**: Built statistics pages with charts and assisted with components design
+  - **Docker Setup**: Designed and configured Docker containers for backend, frontend and Database
   - **Project Support**: Coordinated project and organized workflow
 
 ## Technology Stack
@@ -32,7 +33,6 @@ I contributed to both **backend** and **frontend** development, including:
 - **Backend**: FastAPI (Python)
 - **Frontend**: React.js
 - **Database**: MariaDB
-- **Deployment**: Demo: Vercel + Render (*coming soon*)
 
 ## Installation
 
@@ -41,10 +41,6 @@ See the [INSTALL.md](./INSTALL.md)  file for detailed setup instructions.
 ## Authors
 
 See the [AUTHORS.md](./AUTHORS.md) file for team member information.
-
-## Links
-
-- Deployed Version: *Coming soon*
 
 ## Screenshots
 

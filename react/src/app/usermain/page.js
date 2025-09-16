@@ -49,7 +49,7 @@ export default function UserMainPage() {
     loadUser();
 
     return () => { isMounted = false; };
-  }, []);
+  }, [router]);
 
   // Define basic statistics data 
   useEffect(() => {

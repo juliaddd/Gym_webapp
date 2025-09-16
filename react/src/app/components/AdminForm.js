@@ -2,6 +2,7 @@
 import React from 'react';
 import { Row, Col, Button } from 'react-bootstrap';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import TextField from '@mui/material/TextField';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -21,9 +22,11 @@ export default function AdminForm({ status, setStatus }) {
           <TextField fullWidth label="Surname" defaultValue="Zajaceva" variant="outlined" />
         </Col>
         <Col xs="auto">
-          <img
+          <Image
             src="/images/user.jpg"
             alt="Profile"
+            width={100} 
+            height={100}
             style={{ width: 100, height: 100, borderRadius: '50%', marginTop: 30 }}
           />
         </Col>
