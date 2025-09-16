@@ -3,12 +3,14 @@
 Follow these steps to install and run the project locally:
 
 1. **Clone the Repository**
-        ```
-        git clone https://github.com/juliaddd/Gym_webapp.git
+           
+   ```
+   git clone https://github.com/juliaddd/Gym_webapp.git
+   ```
         cd Gym_webapp
-        ```
 
-2.  **Database Setup:**
+
+3.  **Database Setup:**
     1. Create a new database (e.g., webapp) using phpMyAdmin
     2. Import the schema and seed data:
 
@@ -21,7 +23,7 @@ Follow these steps to install and run the project locally:
     
      `SQLALCHEMY_DATABASE_URL = "mysql+pymysql://webapp:PASSWORD@localhost/webapp"`.
 
-3.  **Backend (FastAPI) Setup and Run:**
+4.  **Backend (FastAPI) Setup and Run:**
 
     1. Create a virtual environment:
         ```
@@ -43,7 +45,7 @@ Follow these steps to install and run the project locally:
         fastapi dev main.py
         ```
 
-4.  **Frontend (React) Setup and Run:**
+5.  **Frontend (React) Setup and Run:**
     1. Navigate to the `react` directory:
         ```
         cd react
@@ -59,7 +61,7 @@ Follow these steps to install and run the project locally:
 
     After completing these steps, react app will run at http://localhost:3000.
 
-5. **Test Credentials**
+6. **Test Credentials**
 
     | Role  | Login                  | Password     |
     | ----- | ---------------------- | ------------ |
