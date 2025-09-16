@@ -4,8 +4,8 @@ Follow these steps to install and run the project locally:
 
 1. **Clone the Repository**
         ```
-        git clone https://gitlab.ujaen.es/yd000015/WBT2425_team10.git
-        cd WBT2425_team10
+        git clone [https://gitlab.ujaen.es/yd000015/WBT2425_team10.git](https://github.com/juliaddd/Gym_webapp.git)
+        cd Gym_webapp
         ```
 
 2.  **Database Setup:**
