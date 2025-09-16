@@ -17,7 +17,7 @@ Follow these steps to install and run the project locally:
         - Training.sql
 
     3. Configure the `webapp` user with CRUD privileges for this database.
-    4. Update fastapi/database.py and set your database password:
+    4. Create `.env` file and set your database password:
     
      `SQLALCHEMY_DATABASE_URL = "mysql+pymysql://webapp:PASSWORD@localhost/webapp"`.
 
